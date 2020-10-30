@@ -48,8 +48,6 @@ for file in files:
         labels = np.append(labels, 1)
 
 train = pd.DataFrame({'files':files,'labels':labels})
-
-#train["labels"] = train["labels"].replace({0: 'cat', 1: 'dog'})
 train["labels"] = train["labels"].astype(str)
 
 # Separo entre train y test
@@ -61,7 +59,7 @@ train, val = train_test_split(train, test_size=4000, stratify=train['labels'])
 # Arquitectura de la VGG16
 model = keras.models.Sequential(name='VGG16')
 
-model.add(layers.Input(shape=(32, 224, 3)))
+model.add(layers.Input(shape=(224, 224, 3)))
 
 model.add(layers.Conv2D(64, 3, strides=1, activation='relu', padding='same'))
 model.add(layers.BatchNormalization())
@@ -83,7 +81,7 @@ model.add(layers.Conv2D(256, 3, strides=1, activation='relu', padding='same'))
 model.add(layers.BatchNormalization())
 model.add(layers.Conv2D(256, 3, strides=1, activation='relu', padding='same'))
 
-model.add(layers.MaxPool2D(2, strides=1))
+model.add(layers.MaxPool2D(2, strides=2))
 model.add(layers.BatchNormalization())
 
 model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
@@ -92,7 +90,7 @@ model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
 model.add(layers.BatchNormalization())
 model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
 
-model.add(layers.MaxPool2D(2, strides=1))
+model.add(layers.MaxPool2D(2, strides=2))
 model.add(layers.BatchNormalization())
 
 model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
@@ -101,19 +99,16 @@ model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
 model.add(layers.BatchNormalization())
 model.add(layers.Conv2D(512, 3, strides=1, activation='relu', padding='same'))
 
-model.add(layers.MaxPool2D(2, strides=1))
+model.add(layers.MaxPool2D(2, strides=2))
 model.add(layers.BatchNormalization())
 
 model.add(layers.Flatten())
-model.add(layers.Dropout(0.3))
+model.add(layers.Dropout(0.2))
 model.add(layers.BatchNormalization())
-model.add(layers.Dense(1024, activation='relu', kernel_regularizer=l2(rf)))
-model.add(layers.Dropout(0.3))
+model.add(layers.Dense(4096, activation='relu', kernel_regularizer=l2(rf)))
+model.add(layers.Dropout(0.2))
 model.add(layers.BatchNormalization())
-model.add(layers.Dense(512, activation='relu', kernel_regularizer=l2(rf)))
-model.add(layers.Dropout(0.3))
-model.add(layers.BatchNormalization())
-model.add(layers.Dense(512, activation='relu', kernel_regularizer=l2(rf)))
+model.add(layers.Dense(4096, activation='relu', kernel_regularizer=l2(rf)))
 model.add(layers.Dense(1, activation='linear'))
 
 model.summary()
@@ -125,17 +120,17 @@ model.compile(optimizer=optimizers.Adam(learning_rate=lr),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.1,2,1,min_lr=1e-5)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.1,2,1,min_lr=1e-6)
 callbacks = [earlystop, lrr]
 
 # Data Generators
 train_IDG = ImageDataGenerator(
-    rotation_range=30,
+    rotation_range=45,
     rescale=1./255,
     zoom_range=0.2,
     horizontal_flip=True,
-    width_shift_range=5,
-    height_shift_range=5
+    width_shift_range=0.1,
+    height_shift_range=0.1
 )
 
 train_generator = train_IDG.flow_from_dataframe(
@@ -143,7 +138,7 @@ train_generator = train_IDG.flow_from_dataframe(
     path_file,
     x_col='files',
     y_col='labels',
-    target_size=(32,32),
+    target_size=(224,224),
     class_mode='binary',
     batch_size=batch_size
 )
@@ -154,7 +149,7 @@ val_generator = val_IDG.flow_from_dataframe(
     path_file,
     x_col='files',
     y_col='labels',
-    target_size=(32,32),
+    target_size=(224,224),
     class_mode='binary',
     batch_size=batch_size
 )
@@ -165,7 +160,7 @@ test_generator = test_IDG.flow_from_dataframe(
     path_file,
     x_col='files',
     y_col='labels',
-    target_size=(32,32),
+    target_size=(224,224),
     class_mode='binary',
     batch_size=batch_size,
     shuffle=False
@@ -210,13 +205,13 @@ hist['test_loss'] = test_loss
 hist['test_acc'] = test_acc
 
 # Guardo los resultados
-data_folder = os.path.join('Datos', '1_VGG16_Small')
+data_folder = os.path.join('Datos', '1_VGG16')
 if not os.path.exists(data_folder):
     os.makedirs(data_folder)
 np.save(os.path.join(data_folder, '{}.npy'.format(description)), hist.history)
 
 # Guardo las imagenes
-img_folder = os.path.join('Figuras', '1_VGG16_Small')
+img_folder = os.path.join('Figuras', '1_VGG16')
 if not os.path.exists(img_folder):
     os.makedirs(img_folder)
 
