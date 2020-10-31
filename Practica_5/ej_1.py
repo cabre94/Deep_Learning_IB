@@ -201,8 +201,8 @@ hist = model.fit(
 
 # Calculo la loss y Accuracy para los datos de test
 test_loss, test_acc = model.evaluate(test_generator)
-hist['test_loss'] = test_loss
-hist['test_acc'] = test_acc
+hist.history['test_loss'] = test_loss
+hist.history['test_acc'] = test_acc
 
 # Guardo los resultados
 data_folder = os.path.join('Datos', '1_VGG16')
