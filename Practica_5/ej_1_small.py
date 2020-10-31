@@ -125,7 +125,7 @@ model.compile(optimizer=optimizers.Adam(learning_rate=lr),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.1,2,1,min_lr=1e-5)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,2,1,min_lr=1e-5)
 callbacks = [earlystop, lrr]
 
 # Data Generators

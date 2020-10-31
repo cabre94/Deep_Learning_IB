@@ -21,7 +21,6 @@ from utils import lr, rf, epochs, batch_size, description
 
 from sklearn.model_selection import train_test_split
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, activations, regularizers
 from tensorflow.keras import losses, metrics, optimizers
@@ -120,7 +119,7 @@ model.compile(optimizer=optimizers.Adam(learning_rate=lr),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.1,2,1,min_lr=1e-6)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,2,1,min_lr=1e-5)
 callbacks = [earlystop, lrr]
 
 # Data Generators
