@@ -19,5 +19,5 @@ source activate deep_learning
 hostname
 
 #python ej_01.py -lr 1e-3 -rf 3e-3 -e 100 -bs 512 --dogs_cats 'small'
-python ej_1.py -lr 1e-2 -rf 5e-4 -e 100 -bs 8
+python ej_1.py -lr 4e-3 -rf 5e-4 -e 100 -bs 8
 #python ej_1.py -lr 1e-2 -rf 3e-3 -e 100 -bs 32

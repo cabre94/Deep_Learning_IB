@@ -119,12 +119,13 @@ model.compile(optimizer=optimizers.Adam(learning_rate=lr),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,2,1,min_lr=1e-5)
-callbacks = [earlystop, lrr]
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,4,1,min_lr=1e-5)
+#callbacks = [earlystop, lrr]
+callbacks = [lrr]
 
 # Data Generators
 train_IDG = ImageDataGenerator(
-    rotation_range=45,
+    rotation_range=30,
     rescale=1./255,
     zoom_range=0.2,
     horizontal_flip=True,
@@ -227,8 +228,8 @@ plt.savefig(os.path.join(img_folder, 'Loss_{}.png'.format(description)),
             bbox_inches="tight")
 plt.close()
 
-plt.plot(hist.history['CAcc'], label="Acc. Training")
-plt.plot(hist.history['val_CAcc'], label="Acc. Validation")
+plt.plot(hist.history['acc'], label="Acc. Training")
+plt.plot(hist.history['val_acc'], label="Acc. Validation")
 plt.title("Acc Test: {:.3f}".format(test_acc))
 plt.xlabel("Epocas", fontsize=15)
 plt.ylabel("Accuracy", fontsize=15)
