@@ -18,7 +18,6 @@ from matplotlib import pyplot as plt
 from utils import lr, rf, epochs, batch_size, description
 
 from sklearn.model_selection import train_test_split
-#from tensorflow.keras.datasets import mnist
 from tensorflow.keras.datasets import fashion_mnist
 
 from tensorflow import keras
