@@ -108,18 +108,19 @@ model.add(layers.Dense(4096, activation='relu', kernel_regularizer=l2(rf)))
 #model.add(layers.Dropout(0.2))
 #model.add(layers.BatchNormalization())
 model.add(layers.Dense(4096, activation='relu', kernel_regularizer=l2(rf)))
-model.add(layers.Dense(1, activation='linear'))
+model.add(layers.Dense(1, activation='sigmoid'))
 
 model.summary()
 
-model.compile(optimizer=optimizers.Adam(learning_rate=lr),
-              loss=losses.BinaryCrossentropy(from_logits=True),
+#model.compile(optimizer=optimizers.Adam(learning_rate=lr),
+model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+              loss=losses.BinaryCrossentropy(),
               metrics=[metrics.BinaryAccuracy(name='acc')])
 
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,4,1,min_lr=1e-5)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,5,1,min_lr=1e-6)
 #callbacks = [earlystop, lrr]
 callbacks = [lrr]
 
