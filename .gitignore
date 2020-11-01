@@ -569,3 +569,10 @@ Practica_4/Informe/Figuras/1/1_Acc.pdf
 Practica_4/Informe/Figuras/1/1_Loss.pdf
 Practica_4/Informe/Figuras/1/1.pdf
 Practica_4/Cabrera.pdf
+Practica_5/o_*.o*
+Practica_5/Datos/*
+Practica_5/Figuras/*
+Practica_5/Fashion-MNIST/*
+Practica_5/dogs-vs-cats/*
+Practica_5/dogs-vs-cats_small/*
+Practica_5/__pycache__/*
