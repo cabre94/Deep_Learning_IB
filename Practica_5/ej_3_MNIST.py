@@ -42,13 +42,8 @@ x_train, x_val, y_train, y_val = train_test_split(x_train,
                                                   stratify=y_train)
 
 # Normalizacion
-media = x_train.mean(axis=0)
-
-x_train = x_train - media
 x_train = x_train.reshape((-1, 28, 28, 1)) / 255
-x_test = x_test - media
 x_test = x_test.reshape((-1, 28, 28, 1)) / 255
-x_val = x_val - media
 x_val = x_val.reshape((-1, 28, 28, 1)) / 255
 
 # Paso los labels a one-hot representation
@@ -79,27 +74,20 @@ mnist_model.compile(optimizer=optimizers.Adam(learning_rate=lr),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.1,2,1,min_lr=1e-6)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,5,1,min_lr=1e-5)
 #callbacks = [earlystop, lrr]
 callbacks = [lrr]
 
-#hist = mnist_model.fit(x_train,
-#                 y_train,
-#                 epochs=epochs,
-#                 validation_data=(x_val, y_val),
-#                 batch_size=batch_size,
-#                 callbacks = callbacks,
-#                 verbose=2)
 hist = mnist_model.fit(x_train,
                  y_train,
                  epochs=epochs,
                  validation_data=(x_val, y_val),
                  batch_size=batch_size,
                  callbacks = callbacks,
-                 verbose=1)
+                 verbose=2)
 
 # Calculo la loss y Accuracy para los datos de test
-test_loss, test_acc = model.evaluate(x_test, y_test)
+test_loss, test_acc = mnist_model.evaluate(x_test, y_test)
 hist.history['test_loss'] = test_loss
 hist.history['test_acc'] = test_acc
 
