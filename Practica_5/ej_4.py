@@ -19,8 +19,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 # Defino constantes
-epochs = 40
-learning_rate = 10.0
+epochs = 300
+learning_rate = 1.0
 
 # Dimensiones de la imagen de entrada (segun VGG16)
 img_width = 224
