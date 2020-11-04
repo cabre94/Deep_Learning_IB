@@ -9,6 +9,7 @@ GitHub: https://github.com/cabre94
 GitLab: https://gitlab.com/cabre94
 Description: ssh facundo.cabrera@rocks7frontend.fisica.cabib
 https://www.kaggle.com/uysimty/keras-cnn-dog-or-cat-classification#Import-Library
+https://www.kaggle.com/vincentman0403/visualize-output-of-cnn-filter-by-gradient-ascent/output
 """
 
 import os
@@ -120,7 +121,7 @@ model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
 
 # Callbacks
 earlystop = keras.callbacks.EarlyStopping(patience=10)
-lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,5,1,min_lr=1e-6)
+lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.2,4,1,min_lr=1e-6)
 #callbacks = [earlystop, lrr]
 callbacks = [lrr]
 
