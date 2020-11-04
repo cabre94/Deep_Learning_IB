@@ -36,6 +36,9 @@ snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 #--------------------------------------
 
 def ej3_Traininig():
+    lr = 1e-3
+    rf = 1e-4
+
     # Importo los datos
     (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 
@@ -96,7 +99,7 @@ def ej3_Traininig():
 
     hist = model.fit(x_train,
                      y_train,
-                     epochs=epochs,
+                     epochs=50,
                      validation_data=(x_val, y_val),
                      batch_size=batch_size,
                      callbacks = callbacks,
@@ -111,8 +114,8 @@ def ej3_Traininig():
     data_folder = 'Fashion-MNIST'
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
-    model.save(os.path.join(data_folder, '{}.h5'.format(description)))
-    np.save(os.path.join(data_folder, '{}.npy'.format(description)), hist.history)
+    model.save(os.path.join(data_folder, 'Fashion-MNIST.h5'))
+    np.save(os.path.join(data_folder, 'Fashion-MNIST.npy'))
 
     # Guardo las imagenes
     img_folder = 'Fashion-MNIST'
@@ -127,8 +130,8 @@ def ej3_Traininig():
     plt.ylabel("Loss", fontsize=15)
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig(os.path.join(img_folder, 'Loss_{}.png'.format(description)),
-                format="png",
+    plt.savefig(os.path.join(img_folder, 'Loss.pdf'),
+                format="pdf",
                 bbox_inches="tight")
     plt.show()
 
@@ -139,8 +142,8 @@ def ej3_Traininig():
     plt.ylabel("Accuracy", fontsize=15)
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig(os.path.join(img_folder, 'Acc_{}.png'.format(description)),
-                format="png",
+    plt.savefig(os.path.join(img_folder, 'Acc.pdf'),
+                format="pdf",
                 bbox_inches="tight")
     plt.show()
 
@@ -150,4 +153,4 @@ def ej3_Traininig():
 
 if __name__ == "__main__":
 
-    pass
+    ej3_Traininig()
