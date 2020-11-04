@@ -33,6 +33,7 @@ snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 #           Ejercicio 3
 #--------------------------------------
 
+
 def ej3TraininigFashionMNIST():
     lr = 1e-3
     rf = 1e-4
@@ -43,7 +44,8 @@ def ej3TraininigFashionMNIST():
     (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 
     # Los junto porque creo que no estan bien distribuidos
-    x_train, y_train = np.vstack((x_train, x_test)), np.hstack((y_train, y_test))
+    x_train, y_train = np.vstack((x_train, x_test)), np.hstack(
+        (y_train, y_test))
     # Separo los datos de test
     x_train, x_test, y_train, y_test = train_test_split(x_train,
                                                         y_train,
@@ -94,7 +96,7 @@ def ej3TraininigFashionMNIST():
                   metrics=[metrics.CategoricalAccuracy(name='acc')])
 
     # Callbacks
-    lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,8,1,min_lr=1e-5)
+    lrr = keras.callbacks.ReduceLROnPlateau('val_acc', 0.5, 8, 1, min_lr=1e-5)
     callbacks = [lrr]
 
     hist = model.fit(x_train,
@@ -102,7 +104,7 @@ def ej3TraininigFashionMNIST():
                      epochs=epochs,
                      validation_data=(x_val, y_val),
                      batch_size=batch_size,
-                     callbacks = callbacks,
+                     callbacks=callbacks,
                      verbose=2)
 
     # Calculo la loss y Accuracy para los datos de test
@@ -159,7 +161,8 @@ def ej3TransferToMNIST():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
     # Los junto porque creo que no estan bien distribuidos
-    x_train, y_train = np.vstack((x_train, x_test)), np.hstack((y_train, y_test))
+    x_train, y_train = np.vstack((x_train, x_test)), np.hstack(
+        (y_train, y_test))
     # Separo los datos de test
     x_train, x_test, y_train, y_test = train_test_split(x_train,
                                                         y_train,
@@ -167,9 +170,9 @@ def ej3TransferToMNIST():
                                                         stratify=y_train)
     # Ahora separo entre training y validacion
     x_train, x_val, y_train, y_val = train_test_split(x_train,
-                                                    y_train,
-                                                    test_size=34500,
-                                                    stratify=y_train)
+                                                      y_train,
+                                                      test_size=34500,
+                                                      stratify=y_train)
 
     # Normalizacion
     x_train = x_train.reshape((-1, 28, 28, 1)) / 255
@@ -182,7 +185,8 @@ def ej3TransferToMNIST():
     y_val = keras.utils.to_categorical(y_val, 10)
 
     # path del modelo entrenado para fashion-mnist
-    trained_model = os.path.join(os.getcwd(), "Fashion-MNIST", "trained_model.h5")
+    trained_model = os.path.join(os.getcwd(), "Fashion-MNIST",
+                                 "trained_model.h5")
     # Cargo el modelo
     fashion_model = keras.models.load_model(trained_model)
     # No dejo que se entrene
@@ -195,27 +199,28 @@ def ej3TransferToMNIST():
         mnist_model.add(layer)
 
     # Pruebo a ver que pasa si solo cambio la ultima capa densa (la de clasificacion)
-    mnist_model.add(layers.Dropout(0.2,name='n4'))
+    mnist_model.add(layers.Dropout(0.2, name='n4'))
     mnist_model.add(layers.BatchNormalization(name='n5'))
-    mnist_model.add(layers.Dense(10, 'linear', kernel_regularizer=l2(rf), name='n6'))
+    mnist_model.add(
+        layers.Dense(10, 'linear', kernel_regularizer=l2(rf), name='n6'))
 
     mnist_model.compile(optimizer=optimizers.Adam(learning_rate=lr),
-                loss=losses.CategoricalCrossentropy(from_logits=True),
-                metrics=[metrics.CategoricalAccuracy(name='acc')])
+                        loss=losses.CategoricalCrossentropy(from_logits=True),
+                        metrics=[metrics.CategoricalAccuracy(name='acc')])
 
     # Callbacks
     earlystop = keras.callbacks.EarlyStopping(patience=10)
-    lrr = keras.callbacks.ReduceLROnPlateau('val_acc',0.5,5,1,min_lr=1e-5)
+    lrr = keras.callbacks.ReduceLROnPlateau('val_acc', 0.5, 5, 1, min_lr=1e-5)
     #callbacks = [earlystop, lrr]
     callbacks = [lrr]
 
     hist = mnist_model.fit(x_train,
-                    y_train,
-                    epochs=epochs,
-                    validation_data=(x_val, y_val),
-                    batch_size=batch_size,
-                    callbacks = callbacks,
-                    verbose=2)
+                           y_train,
+                           epochs=epochs,
+                           validation_data=(x_val, y_val),
+                           batch_size=batch_size,
+                           callbacks=callbacks,
+                           verbose=2)
 
     # Calculo la loss y Accuracy para los datos de test
     test_loss, test_acc = mnist_model.evaluate(x_test, y_test)
@@ -227,7 +232,8 @@ def ej3TransferToMNIST():
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
     mnist_model.save(os.path.join(data_folder, '{}.h5'.format(description)))
-    np.save(os.path.join(data_folder, '{}.npy'.format(description)), hist.history)
+    np.save(os.path.join(data_folder, '{}.npy'.format(description)),
+            hist.history)
 
     # Guardo las imagenes
     img_folder = os.path.join('Figuras', 'MNIST')
@@ -267,27 +273,30 @@ def ej3TransferToMNIST():
 # Basado en el ejemplo de
 # https://keras.io/examples/vision/visualizing_what_convnets_learn/
 
+
 # Funcion loss que vamos a querer maximizar. En este caso es la media de la
 # activacion para un filtro de la layer que tenemo. No se bien porque pero
 # no consideramos los bordes
-def compute_loss(input_image, filter_index,feature_extractor):
+def compute_loss(input_image, filter_index, feature_extractor):
     activation = feature_extractor(input_image)
     # No consideramos los bordes
     filter_activation = activation[:, 2:-2, 2:-2, filter_index]
     return tf.reduce_mean(filter_activation)
 
+
 # Funcion que realiza un paso del gradient ascent
 @tf.function
-def gradient_ascent_step(img, filter_index, lr,feature_extractor):
+def gradient_ascent_step(img, filter_index, lr, feature_extractor):
     with tf.GradientTape() as tape:
         tape.watch(img)
-        loss = compute_loss(img, filter_index,feature_extractor)
+        loss = compute_loss(img, filter_index, feature_extractor)
     # Calcula el gradiente
     grads = tape.gradient(loss, img)
     # Regularizacion
     grads = tf.math.l2_normalize(grads)
     img += lr * grads
     return loss, img
+
 
 # Funcion para desnormalizar
 def deprocess_image(img):
@@ -305,6 +314,7 @@ def deprocess_image(img):
     img = np.clip(img, 0, 255).astype("uint8")
     return img
 
+
 # funcion para inicializar una imagen en gris
 def initialize_image(img_width, img_height):
     img = tf.random.uniform((1, img_width, img_height, 3))
@@ -312,23 +322,28 @@ def initialize_image(img_width, img_height):
     # Escalamos a [-0.125, +0.125]
     return (img - 0.5) * 0.25
 
+
 # Para un dado filtro de una dada capa, calcula la imagen que maximiza
 # su activacion. Tambien retorna la loss correspondiente
-def visualize_filter(filter_index,feature_extractor, epochs, learning_rate, img_width, img_height):
+def visualize_filter(filter_index, feature_extractor, epochs, learning_rate,
+                     img_width, img_height):
     img = initialize_image(img_width, img_height)
     for iteration in range(epochs):
-        loss, img = gradient_ascent_step(img, filter_index, learning_rate,feature_extractor)
+        loss, img = gradient_ascent_step(img, filter_index, learning_rate,
+                                         feature_extractor)
     # Decode the resulting input image
     img = deprocess_image(img[0].numpy())
     return loss, img
+
 
 #--------------------------------------
 #           Ejercicio 4
 #--------------------------------------
 
-def ej4(model = 'VGG16'):
+
+def ej4(model='VGG16'):
     # Defino constantes
-    epochs = 200 # Yo lo calcule con mas, pero tardaba un siglo
+    epochs = 200  # Yo lo calcule con mas, pero tardaba un siglo
     learning_rate = 1
 
     # Dimensiones de la imagen de entrada
@@ -344,34 +359,39 @@ def ej4(model = 'VGG16'):
     elif model == 'ResNet':
         model = keras.applications.ResNet50V2(False)
         img_folder = os.path.join('Figuras', 'ResNet50v2')
-    
+
     # Carpeta donde guardamos las imagenes
     if not os.path.exists(img_folder):
         os.makedirs(img_folder)
-    
+
     # Constantes para que los graficos queden lindos
     margin = 1
-    n = 4   # Numero de filas
-    m = 6   # Numero de columnas
+    n = 4  # Numero de filas
+    m = 6  # Numero de columnas
     cropped_width = img_width - 25 * 2
     cropped_height = img_height - 25 * 2
     width = n * cropped_width + (n - 1) * margin
     height = m * cropped_height + (m - 1) * margin
 
     for layer in model.layers:
-        if '_conv' in layer.name: # Solo buscamos las convolucionales
+        if '_conv' in layer.name:  # Solo buscamos las convolucionales
             layer_name = layer.name
             layer = model.get_layer(name=layer_name)
 
-            feature_extractor = keras.Model(inputs=model.inputs, outputs=layer.output)
+            feature_extractor = keras.Model(inputs=model.inputs,
+                                            outputs=layer.output)
 
             # Me gusta agarrar filtros aleatorios y no solo los primeros
-            random_idx = np.random.choice(range(layer.filters),n*m,replace=False)
+            random_idx = np.random.choice(range(layer.filters),
+                                          n * m,
+                                          replace=False)
 
             all_imgs = []
             for filter_index in random_idx:
-                print("Layer {} - Filtro {}".format(layer_name,filter_index))
-                loss, img = visualize_filter(filter_index, feature_extractor, epochs, learning_rate, img_width, img_height)
+                print("Layer {} - Filtro {}".format(layer_name, filter_index))
+                loss, img = visualize_filter(filter_index, feature_extractor,
+                                             epochs, learning_rate, img_width,
+                                             img_height)
                 all_imgs.append(img)
 
             stitched_filters = np.zeros((width, height, 3))
@@ -379,12 +399,11 @@ def ej4(model = 'VGG16'):
             for i in range(n):
                 for j in range(m):
                     img = all_imgs[i * m + j]
-                    stitched_filters[
-                        (cropped_width + margin) * i : (cropped_width + margin) * i + cropped_width,
-                        (cropped_height + margin) * j : (cropped_height + margin) * j
-                        + cropped_height,
-                        :,
-                    ] = img
+                    stitched_filters[(cropped_width + margin) *
+                                     i:(cropped_width + margin) * i +
+                                     cropped_width, (cropped_height + margin) *
+                                     j:(cropped_height + margin) * j +
+                                     cropped_height, :, ] = img
 
             save_path = os.path.join(img_folder, "{}.pdf".format(layer_name))
             keras.preprocessing.image.save_img(save_path, stitched_filters)
@@ -396,6 +415,6 @@ if __name__ == "__main__":
 
     ej3TransferToMNIST()
 
-    ej4(model = 'VGG16')
+    ej4(model='VGG16')
 
-    ej4(model = 'ResNet')
+    ej4(model='ResNet')
