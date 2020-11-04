@@ -215,7 +215,7 @@ def ej3TransferToMNIST():
                     validation_data=(x_val, y_val),
                     batch_size=batch_size,
                     callbacks = callbacks,
-                    verbose=1)
+                    verbose=2)
 
     # Calculo la loss y Accuracy para los datos de test
     test_loss, test_acc = mnist_model.evaluate(x_test, y_test)
@@ -260,9 +260,142 @@ def ej3TransferToMNIST():
     plt.show()
 
 
+#--------------------------------------
+#   Func. auxiliares para el ej 4
+#--------------------------------------
+
+# Basado en el ejemplo de
+# https://keras.io/examples/vision/visualizing_what_convnets_learn/
+
+# Funcion loss que vamos a querer maximizar. En este caso es la media de la
+# activacion para un filtro de la layer que tenemo. No se bien porque pero
+# no consideramos los bordes
+def compute_loss(input_image, filter_index,feature_extractor):
+    activation = feature_extractor(input_image)
+    # No consideramos los bordes
+    filter_activation = activation[:, 2:-2, 2:-2, filter_index]
+    return tf.reduce_mean(filter_activation)
+
+# Funcion que realiza un paso del gradient ascent
+@tf.function
+def gradient_ascent_step(img, filter_index, lr,feature_extractor):
+    with tf.GradientTape() as tape:
+        tape.watch(img)
+        loss = compute_loss(img, filter_index,feature_extractor)
+    # Calcula el gradiente
+    grads = tape.gradient(loss, img)
+    # Regularizacion
+    grads = tf.math.l2_normalize(grads)
+    img += lr * grads
+    return loss, img
+
+# Funcion para desnormalizar
+def deprocess_image(img):
+    # Ajusta la imagen centrandola en cero y ajustandole la std a 0.15
+    img -= img.mean()
+    img /= img.std() + 1e-5
+    img *= 0.15
+    # Sacamos los bordes
+    img = img[25:-25, 25:-25, :]
+    # Clip a [0, 1]
+    img += 0.5
+    img = np.clip(img, 0, 1)
+    # Pasamos a RGB
+    img *= 255
+    img = np.clip(img, 0, 255).astype("uint8")
+    return img
+
+# funcion para inicializar una imagen en gris
+def initialize_image(img_width, img_height):
+    img = tf.random.uniform((1, img_width, img_height, 3))
+    # El input de la red ResNet50V2 esta entre [-1, +1].
+    # Escalamos a [-0.125, +0.125]
+    return (img - 0.5) * 0.25
+
+# Para un dado filtro de una dada capa, calcula la imagen que maximiza
+# su activacion. Tambien retorna la loss correspondiente
+def visualize_filter(filter_index,feature_extractor, epochs, learning_rate, img_width, img_height):
+    img = initialize_image(img_width, img_height)
+    for iteration in range(epochs):
+        loss, img = gradient_ascent_step(img, filter_index, learning_rate,feature_extractor)
+    # Decode the resulting input image
+    img = deprocess_image(img[0].numpy())
+    return loss, img
+
+#--------------------------------------
+#           Ejercicio 4
+#--------------------------------------
+
+def ej4(model = 'VGG16'):
+    # Defino constantes
+    epochs = 200 # Yo lo calcule con mas, pero tardaba un siglo
+    learning_rate = 1
+
+    # Dimensiones de la imagen de entrada
+    img_width = 224
+    img_height = 224
+
+    # Cargamos el modelo eentrenado de Keras. Por defecto carga los pesos
+    # entrenamos para ImageNet. Ademas le decimos que no nos cargue las
+    # capas densas de clasificacion ya que no nos interesan
+    if model == 'VGG16':
+        model = keras.applications.VGG16(False)
+        img_folder = os.path.join('Figuras', 'VGG16')
+    elif model == 'ResNet':
+        model = keras.applications.ResNet50V2(False)
+        img_folder = os.path.join('Figuras', 'ResNet50v2')
+    
+    # Carpeta donde guardamos las imagenes
+    if not os.path.exists(img_folder):
+        os.makedirs(img_folder)
+    
+    # Constantes para que los graficos queden lindos
+    margin = 1
+    n = 4   # Numero de filas
+    m = 6   # Numero de columnas
+    cropped_width = img_width - 25 * 2
+    cropped_height = img_height - 25 * 2
+    width = n * cropped_width + (n - 1) * margin
+    height = m * cropped_height + (m - 1) * margin
+
+    for layer in model.layers:
+        if '_conv' in layer.name: # Solo buscamos las convolucionales
+            layer_name = layer.name
+            layer = model.get_layer(name=layer_name)
+
+            feature_extractor = keras.Model(inputs=model.inputs, outputs=layer.output)
+
+            # Me gusta agarrar filtros aleatorios y no solo los primeros
+            random_idx = np.random.choice(range(layer.filters),n*m,replace=False)
+
+            all_imgs = []
+            for filter_index in random_idx:
+                print("Layer {} - Filtro {}".format(layer_name,filter_index))
+                loss, img = visualize_filter(filter_index, feature_extractor, epochs, learning_rate, img_width, img_height)
+                all_imgs.append(img)
+
+            stitched_filters = np.zeros((width, height, 3))
+
+            for i in range(n):
+                for j in range(m):
+                    img = all_imgs[i * m + j]
+                    stitched_filters[
+                        (cropped_width + margin) * i : (cropped_width + margin) * i + cropped_width,
+                        (cropped_height + margin) * j : (cropped_height + margin) * j
+                        + cropped_height,
+                        :,
+                    ] = img
+
+            save_path = os.path.join(img_folder, "{}.pdf".format(layer_name))
+            keras.preprocessing.image.save_img(save_path, stitched_filters)
+
 
 if __name__ == "__main__":
 
     ej3TraininigFashionMNIST()
 
     ej3TransferToMNIST()
+
+    ej4(model = 'VGG16')
+
+    ej4(model = 'ResNet')
