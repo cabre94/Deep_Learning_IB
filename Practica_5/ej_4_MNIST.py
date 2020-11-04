@@ -19,19 +19,20 @@ import tensorflow as tf
 from tensorflow import keras
 
 # Defino constantes
-epochs = 40
-learning_rate = 10.0
+epochs = 200
+learning_rate = 1.0
 
 # Dimensiones de la imagen de entrada (segun VGG16)
-img_width = 224
-img_height = 224
+img_width = 28
+img_height = 28
 
 # Funcion loss que vamos a querer maximizar. En este caso es la media de la
 # activacion para un filtro de la layer que tenemo. No se bien porque pero
 # no consideramos los bordes
 def compute_loss(input_image, filter_index,feature_extractor):
     activation = feature_extractor(input_image)
-    filter_activation = activation[:, 2:-2, 2:-2, filter_index]
+    #filter_activation = activation[:, 2:-2, 2:-2, filter_index]
+    filter_activation = activation[:, :, :, filter_index]
     return tf.reduce_mean(filter_activation)
 
 # Funcion que realiza un paso del gradient ascent
@@ -54,7 +55,7 @@ def deprocess_image(img):
     img /= img.std() + 1e-5
     img *= 0.15
     # Center crop
-    img = img[25:-25, 25:-25, :]
+    #img = img[25:-25, 25:-25, :]#
     # Clip to [0, 1]
     img += 0.5
     img = np.clip(img, 0, 1)
@@ -65,7 +66,7 @@ def deprocess_image(img):
 
 # funcion para inicializar una imagen en gris
 def initialize_image():
-    img = tf.random.uniform((1, img_width, img_height, 3))
+    img = tf.random.uniform((1, img_width, img_height, 1))
     # ResNet50V2 expects inputs in the range [-1, +1].
     # Here we scale our random inputs to [-0.125, +0.125]
     return (img - 0.5) * 0.25
@@ -79,11 +80,13 @@ def visualize_filter(filter_index,feature_extractor):
     img = deprocess_image(img[0].numpy())
     return loss, img
 
-model = keras.applications.VGG16(False)
+mnist_model_path = os.path.join(os.getcwd(), "Datos", "Conv_MNIST", "trained_model.h5")
+model = keras.models.load_model(mnist_model_path)
+#model = keras.applications.VGG16(False)
 #model = keras.applications.ResNet50V2(weights="imagenet", include_top=False)
 
 # Carpeta donde guardamos las imagenes
-img_folder = os.path.join('Figuras', '4_VGG16')
+img_folder = os.path.join('Figuras', '4_MNIST')
 if not os.path.exists(img_folder):
     os.makedirs(img_folder)
 
@@ -91,14 +94,14 @@ if not os.path.exists(img_folder):
 margin = 1
 n = 4   # Numero de filas
 m = 6   # Numero de columnas
-cropped_width = img_width - 25 * 2
-cropped_height = img_height - 25 * 2
+cropped_width = 28
+cropped_height = 28
 width = n * cropped_width + (n - 1) * margin
 height = m * cropped_height + (m - 1) * margin
 
 
 for layer in model.layers:
-    if '_conv' in layer.name: # Solo buscamos las convolucionales
+    if 'conv' in layer.name: # Solo buscamos las convolucionales
         layer_name = layer.name
         layer = model.get_layer(name=layer_name)
 
@@ -112,7 +115,7 @@ for layer in model.layers:
             loss, img = visualize_filter(filter_index, feature_extractor)
             all_imgs.append(img)
 
-        stitched_filters = np.zeros((width, height, 3))
+        stitched_filters = np.zeros((width, height, 1))
 
         for i in range(n):
             for j in range(m):
@@ -126,3 +129,19 @@ for layer in model.layers:
 
         save_path = os.path.join(img_folder, "{}.pdf".format(layer_name))
         keras.preprocessing.image.save_img(save_path, stitched_filters)
+
+feature_extractor_mnist = keras.Model(inputs=model.inputs, outputs=model.outputs)
+
+fig = plt.figure(figsize=(19,3))
+for i in range(10):
+    loss, img = visualize_filter(i, feature_extractor_mnist)
+    ax = plt.subplot(1, 10, i+1)
+    plt.imshow(img)
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.set_title(str(i), fontsize=14, wrap=True)
+fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.suptitle('Clases interpretadas por la red neuronal para MNIST.', fontsize=16)
+save_path = os.path.join(img_folder, "Entrada.pdf")
+plt.savefig(save_path, format='pdf')
+plt.show()
