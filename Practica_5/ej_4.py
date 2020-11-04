@@ -19,8 +19,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 # Defino constantes
-epochs = 300
-learning_rate = 1.0
+epochs = 5000
+learning_rate = 1
 
 # Dimensiones de la imagen de entrada (segun VGG16)
 img_width = 224
@@ -79,11 +79,11 @@ def visualize_filter(filter_index,feature_extractor):
     img = deprocess_image(img[0].numpy())
     return loss, img
 
-model = keras.applications.VGG16(False)
-#model = keras.applications.ResNet50V2(weights="imagenet", include_top=False)
+#model = keras.applications.VGG16(False)
+model = keras.applications.ResNet50V2(weights="imagenet", include_top=False)
 
 # Carpeta donde guardamos las imagenes
-img_folder = os.path.join('Figuras', '4_VGG16')
+img_folder = os.path.join('Figuras', '4_ResNet50v2')
 if not os.path.exists(img_folder):
     os.makedirs(img_folder)
 
