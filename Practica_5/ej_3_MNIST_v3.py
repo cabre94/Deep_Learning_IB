@@ -33,12 +33,12 @@ x_train, y_train = np.vstack((x_train, x_test)), np.hstack((y_train, y_test))
 # Separo los datos de test
 x_train, x_test, y_train, y_test = train_test_split(x_train,
                                                     y_train,
-                                                    test_size=15000,
+                                                    test_size=34500,
                                                     stratify=y_train)
 # Ahora separo entre training y validacion
 x_train, x_val, y_train, y_val = train_test_split(x_train,
                                                   y_train,
-                                                  test_size=15000,
+                                                  test_size=34500,
                                                   stratify=y_train)
 
 # Normalizacion
@@ -84,7 +84,7 @@ hist = mnist_model.fit(x_train,
                  validation_data=(x_val, y_val),
                  batch_size=batch_size,
                  callbacks = callbacks,
-                 verbose=1)
+                 verbose=2)
 
 # Calculo la loss y Accuracy para los datos de test
 test_loss, test_acc = mnist_model.evaluate(x_test, y_test)
@@ -92,14 +92,14 @@ hist.history['test_loss'] = test_loss
 hist.history['test_acc'] = test_acc
 
 # Guardo los datos
-data_folder = os.path.join('Datos', 'MNIST')
+data_folder = 'MNIST'
 if not os.path.exists(data_folder):
     os.makedirs(data_folder)
 mnist_model.save(os.path.join(data_folder, '{}.h5'.format(description)))
 np.save(os.path.join(data_folder, '{}.npy'.format(description)), hist.history)
 
 # Guardo las imagenes
-img_folder = os.path.join('Figuras', 'MNIST')
+img_folder = 'MNIST'
 if not os.path.exists(img_folder):
     os.makedirs(img_folder)
 
