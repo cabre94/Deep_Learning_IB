@@ -57,7 +57,7 @@ train, test = train_test_split(data,
 # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
 
 # ------------------------------
-# b
+print("Inciso B")
 # ------------------------------
 x_train, y_train = train.drop(["High", "Sales"], axis=1), train["High"]
 x_test, y_test = test.drop(["High", "Sales"], axis=1), test["High"]
@@ -86,7 +86,7 @@ graph = graphviz.Source(dot_data)
 graph.render("b")
 
 # ------------------------------
-# c
+print("Inciso C")
 # ------------------------------
 x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
 x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
@@ -125,7 +125,7 @@ mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
 # print(mse_tests)
 
 # ------------------------------
-# d
+print("Inciso D")
 # ------------------------------
 
 # print("Precision de Clasificador")
@@ -140,7 +140,7 @@ mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
 # predict_test = treeRegressor.predict(x_test)
 
 # ------------------------------
-# e
+print("Inciso E")
 # ------------------------------
 
 # clf = tree.DecisionTreeClassifier()
@@ -178,39 +178,49 @@ print("Resultados para Prunnig")
 print(final_model.score(x_test, y_test))
 
 # ------------------------------
-# f
+print("Inciso F")
 # ------------------------------
 
 from sklearn.model_selection import GridSearchCV
 
-treeRegressor = tree.DecisionTreeRegressor()
-ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
+# treeRegressor = tree.DecisionTreeRegressor()
+# ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
-parameters = {
-    "n_estimators": np.arange(10, 100, 5),
-    "max_samples": np.arange(1, 20, 1),
-    "bootstrap": ["True"]
-    # 'ccp_alpha': np.linspace(0, 2, 100)
-}
+# parameters = {
+#     "n_estimators": np.arange(10, 100, 5),
+#     "max_samples": np.random.uniform(0,1,100),
+#     "bootstrap": ["True"]
+#     # 'ccp_alpha': np.linspace(0, 2, 100)
+# }
 
-gsCV = GridSearchCV(ensembleBagging,
-                    parameters,
-                    verbose=1,
-                    return_train_score=True)
+# gsCV = GridSearchCV(ensembleBagging,
+#                     parameters,
+#                     verbose=1,
+#                     return_train_score=True)
 
-gsCV.fit(x_train, y_train)
+# gsCV.fit(x_train, y_train)
 
-print("Mejores parámetros:")
-print(gsCV.best_params_)
-final_model = gsCV.best_estimator_
+# print("Mejores parámetros:")
+# print(gsCV.best_params_)
+# final_model = gsCV.best_estimator_
 
-print("Resultados para Bagging")
-print(final_model.score(x_test, y_test))
+# print("Resultados para Bagging")
+# print(final_model.score(x_test, y_test))
+
+# pesos = np.zeros(10)
+
+# for trees in final_model.estimators_:
+#     pesos += trees.feature_importances_
+
+# pesos /= len(final_model.estimators_)
+# print(pesos)
 
 # ------------------------------
-# g
+print("Inciso G")
 # ------------------------------
 
+randomForest = ensemble.RandomForestRegressor()
+
 # ------------------------------
-# h
+print("Inciso H")
 # ------------------------------
