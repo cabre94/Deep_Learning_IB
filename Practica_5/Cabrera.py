@@ -409,12 +409,93 @@ def ej4(model='VGG16'):
             keras.preprocessing.image.save_img(save_path, stitched_filters)
 
 
+#--------------------------------------
+# Funcion para graficar
+#--------------------------------------
+
+
+def graficosFashionMNIST():
+    path_data = os.path.join(os.getcwd(), "Fashion-MNIST",
+                                 "trained_model.npy")
+
+    data = np.load(path_data, allow_pickle=True).item()
+
+    # Grafico y guardo figuras
+    img_folder = os.path.join('Informe', 'Figuras', '3_FashionMNIST')
+    if not os.path.exists(img_folder):
+        os.makedirs(img_folder)
+
+    # Grafico
+    plt.plot(data['loss'][:50], label="Loss Training")
+    plt.plot(data['val_loss'][:50], label="Loss Validation")
+    # plt.title("Acc Test: {:.3f}".format(test_Acc))
+    plt.xlabel("Epocas",fontsize=15)
+    plt.ylabel("Loss",fontsize=15)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_folder, 'Loss.pdf'),
+                format="pdf",
+                bbox_inches="tight")
+    plt.show()
+
+    # Grafico
+    plt.plot(data['acc'][:50], label="Loss Training")
+    plt.plot(data['val_acc'][:50], label="Loss Validation")
+    # plt.title("Acc Test: {:.3f}".format(test_Acc))
+    plt.xlabel("Epocas",fontsize=15)
+    plt.ylabel("Accuracy",fontsize=15)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_folder, 'Acc.pdf'),
+                format="pdf",
+                bbox_inches="tight")
+    plt.show()
+
+def graficosTransferToMNIST():
+    path_data = os.path.join(os.getcwd(), "MNIST",
+                                 "transferedModel.npy")
+
+    data = np.load(path_data, allow_pickle=True).item()
+
+    # Grafico y guardo figuras
+    img_folder = os.path.join('Informe', 'Figuras', '3_MNIST')
+    if not os.path.exists(img_folder):
+        os.makedirs(img_folder)
+
+    # Grafico
+    plt.plot(data['loss'][:50], label="Loss Training")
+    plt.plot(data['val_loss'][:50], label="Loss Validation")
+    # plt.title("Acc Test: {:.3f}".format(test_Acc))
+    plt.xlabel("Epocas",fontsize=15)
+    plt.ylabel("Loss",fontsize=15)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_folder, 'Loss.pdf'),
+                format="pdf",
+                bbox_inches="tight")
+    plt.show()
+
+    # Grafico
+    plt.plot(data['acc'][:50], label="Loss Training")
+    plt.plot(data['val_acc'][:50], label="Loss Validation")
+    # plt.title("Acc Test: {:.3f}".format(test_Acc))
+    plt.xlabel("Epocas",fontsize=15)
+    plt.ylabel("Accuracy",fontsize=15)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_folder, 'Acc.pdf'),
+                format="pdf",
+                bbox_inches="tight")
+    plt.show()
+
 if __name__ == "__main__":
 
-    ej3TraininigFashionMNIST()
+    # ej3TraininigFashionMNIST()
+    # ej3TransferToMNIST()
 
-    ej3TransferToMNIST()
+    graficosFashionMNIST()
 
-    ej4(model='VGG16')
+    graficosTransferToMNIST()
 
-    ej4(model='ResNet')
+    # ej4(model='VGG16')
+    # ej4(model='ResNet')
