@@ -10,13 +10,13 @@ GitLab: https://gitlab.com/cabre94
 Description:
 """
 
+import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_validate
-import pandas as pd
-from sklearn import tree
-from sklearn import ensemble
+from sklearn.model_selection import GridSearchCV
+from sklearn import tree, ensemble
 import graphviz
 
 import seaborn as snn
@@ -37,316 +37,322 @@ def newVariable(row):
         return "No"
 
 
-# ------------------------------
-print("Inciso B")
-# ------------------------------
-x_train, y_train = train.drop(["High", "Sales"], axis=1), train["High"]
-x_test, y_test = test.drop(["High", "Sales"], axis=1), test["High"]
-# x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
+def item_B(train, test, plot=False):
+    # Eliminamos las variables continuas
+    x_train, y_train = train.drop(["High", "Sales"], axis=1), train["High"]
+    x_test, y_test = test.drop(["High", "Sales"], axis=1), test["High"]
+    # x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
 
-# Creo el arbol
-treeClassifier = tree.DecisionTreeClassifier()
-treeClassifier = treeClassifier.fit(x_train, y_train)
+    # Creo el arbol
+    treeClassifier = tree.DecisionTreeClassifier()
+    treeClassifier = treeClassifier.fit(x_train, y_train)
 
-print("Resultados para Tree Classifier")
-print(treeClassifier.score(x_train, y_train))
-print(treeClassifier.score(x_test, y_test))
-# print(treeClassifier.score(x_val,y_val))
+    print("Resultados para Tree Classifier")
+    print(treeClassifier.score(x_train, y_train))
+    print(treeClassifier.score(x_test, y_test))
+    # print(treeClassifier.score(x_val,y_val))
 
-dot_data = tree.export_graphviz(
-    treeClassifier,
-    out_file=None,
-    filled=True,
-    rounded=True,
-    label="root",
-    leaves_parallel=False,
-    rotate=False,
-    special_characters=True,
-)
-graph = graphviz.Source(dot_data)
-graph.render("b")
+    dot_data = tree.export_graphviz(
+        treeClassifier,
+        out_file=None,
+        filled=True,
+        rounded=True,
+        label="root",
+        leaves_parallel=False,
+        rotate=False,
+        special_characters=True,
+    )
+    graph = graphviz.Source(dot_data)
+    graph.render("b")
+
+
+
+
+
+
 
 # ------------------------------
 print("Inciso C")
 # ------------------------------
-x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
-x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
-# x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
-
-# Creo el arbol
-treeRegressor = tree.DecisionTreeRegressor()
-treeRegressor = treeRegressor.fit(x_train, y_train)
-
-print("Resultados para Tree Regressor")
-print(treeRegressor.score(x_train, y_train))
-print(treeRegressor.score(x_test, y_test))
-# print(treeClassifier.score(x_val,y_val))
 
-dot_data = tree.export_graphviz(
-    treeRegressor,
-    max_depth=4,
-    out_file=None,
-    filled=True,
-    rounded=True,
-    label="root",
-    leaves_parallel=False,
-    rotate=False,
-    special_characters=True,
-)
+def item_C(x_train, y_train):
+    
+    # x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
 
-graph = graphviz.Source(dot_data)
-graph.render("c")
+    # Creo el arbol
+    treeRegressor = tree.DecisionTreeRegressor()
+    treeRegressor = treeRegressor.fit(x_train, y_train)
 
-predict_train = treeRegressor.predict(x_train)
-predict_test = treeRegressor.predict(x_test)
+    print("Resultados para Tree Regressor")
+    print(treeRegressor.score(x_train, y_train))
+    print(treeRegressor.score(x_test, y_test))
+    # print(treeClassifier.score(x_val,y_val))
 
-mse_train = np.linalg.norm(y_train - predict_train) / len(y_train)
-mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
+    dot_data = tree.export_graphviz(
+        treeRegressor,
+        max_depth=4,
+        out_file=None,
+        filled=True,
+        rounded=True,
+        label="root",
+        leaves_parallel=False,
+        rotate=False,
+        special_characters=True,
+    )
 
-# print(mse_tests)
+    graph = graphviz.Source(dot_data)
+    graph.render("c")
 
-# ------------------------------
-print("Inciso D")
-# ------------------------------
+    predict_train = treeRegressor.predict(x_train)
+    predict_test = treeRegressor.predict(x_test)
 
-# print("Precision de Clasificador")
-# print("Train:", treeClassifier.score(x_train,y_train))
-# print("Test:",treeClassifier.score(x_test,y_test))
+    mse_train = np.linalg.norm(y_train - predict_train) / len(y_train)
+    mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
 
-# print("Precision de Clasificador")
-# print("Train:", treeRegressor.score(x_train,y_train))
-# print("Test:", treeRegressor.score(x_test,y_test))
+    # print(mse_tests)
 
-# predict_train = treeRegressor.predict(x_train)
-# predict_test = treeRegressor.predict(x_test)
 
-# ------------------------------
-print("Inciso E")
-# ------------------------------
 
-# clf = tree.DecisionTreeClassifier()
-# path = clf.cost_complexity_pruning_path(x_train, y_train)
-# ccp_alphas, impurities = path.ccp_alphas, path.impurities
+def item_D(x_train, y_train):
+    pass
+    # print("Precision de Clasificador")
+    # print("Train:", treeClassifier.score(x_train,y_train))
+    # print("Test:",treeClassifier.score(x_test,y_test))
 
-# fig, ax = plt.subplots()
-# ax.plot(ccp_alphas[:-1], impurities[:-1], marker='o', drawstyle="steps-post")
-# ax.set_xlabel("effective alpha")
-# ax.set_ylabel("total impurity of leaves")
-# ax.set_title("Total Impurity vs effective alpha for training set")
-# # plt.show()
+    # print("Precision de Clasificador")
+    # print("Train:", treeRegressor.score(x_train,y_train))
+    # print("Test:", treeRegressor.score(x_test,y_test))
 
-from sklearn.model_selection import GridSearchCV
+    # predict_train = treeRegressor.predict(x_train)
+    # predict_test = treeRegressor.predict(x_test)
 
-treeRegressor = tree.DecisionTreeRegressor()
 
-parameters = {
-    "max_depth": np.arange(1, 20, 1),
-    "ccp_alpha": np.linspace(0, 2, 100)
-}
+def item_E(x_train, y_train):
+    # clf = tree.DecisionTreeClassifier()
+    # path = clf.cost_complexity_pruning_path(x_train, y_train)
+    # ccp_alphas, impurities = path.ccp_alphas, path.impurities
 
-gsCV = GridSearchCV(treeRegressor,
-                    parameters,
-                    verbose=1,
-                    return_train_score=True)
+    # fig, ax = plt.subplots()
+    # ax.plot(ccp_alphas[:-1], impurities[:-1], marker='o', drawstyle="steps-post")
+    # ax.set_xlabel("effective alpha")
+    # ax.set_ylabel("total impurity of leaves")
+    # ax.set_title("Total Impurity vs effective alpha for training set")
+    # # plt.show()
 
-gsCV.fit(x_train, y_train)
 
-print("Mejores parámetros:")
-print(gsCV.best_params_)
-final_model = gsCV.best_estimator_
+    treeRegressor = tree.DecisionTreeRegressor()
 
-print("Resultados para Prunnig")
-print(final_model.score(x_test, y_test))
+    parameters = {
+        "max_depth": np.arange(1, 20, 1),
+        "ccp_alpha": np.linspace(0, 2, 100)
+    }
 
-# ------------------------------
-print("Inciso F")
-# ------------------------------
+    gsCV = GridSearchCV(treeRegressor,
+                        parameters,
+                        verbose=1,
+                        return_train_score=True)
 
-from sklearn.model_selection import GridSearchCV
+    gsCV.fit(x_train, y_train)
 
-treeRegressor = tree.DecisionTreeRegressor()
-ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
+    print("Mejores parámetros:")
+    print(gsCV.best_params_)
+    final_model = gsCV.best_estimator_
 
-parameters = {
-    "n_estimators": np.arange(10, 100, 5),
-    "max_samples": np.random.uniform(0, 1, 100),
-    "bootstrap": ["True"]
-    # 'ccp_alpha': np.linspace(0, 2, 100)
-}
+    print("Resultados para Prunnig")
+    print(final_model.score(x_test, y_test))
 
-gsCV = GridSearchCV(ensembleBagging,
-                    parameters,
-                    verbose=1,
-                    return_train_score=True)
 
-gsCV.fit(x_train, y_train)
+def item_F(x_train, y_train):
 
-print("Mejores parámetros:")
-print(gsCV.best_params_)
-final_model = gsCV.best_estimator_
+    treeRegressor = tree.DecisionTreeRegressor()
+    ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
-print("Resultados para Bagging")
-print(final_model.score(x_test, y_test))
+    parameters = {
+        "n_estimators": np.arange(10, 100, 5),
+        "max_samples": np.random.uniform(0, 1, 100),
+        "bootstrap": ["True"]
+        # 'ccp_alpha': np.linspace(0, 2, 100)
+    }
 
-pesos = np.zeros(10)
+    gsCV = GridSearchCV(ensembleBagging,
+                        parameters,
+                        verbose=1,
+                        return_train_score=True)
 
-for trees in final_model.estimators_:
-    pesos += trees.feature_importances_
+    gsCV.fit(x_train, y_train)
 
-pesos /= len(final_model.estimators_)
-print(pesos)
+    print("Mejores parámetros:")
+    print(gsCV.best_params_)
+    final_model = gsCV.best_estimator_
 
-# ------------------------------
-print("Inciso G")
-# ------------------------------
+    print("Resultados para Bagging")
+    print(final_model.score(x_test, y_test))
 
-scores_train = np.array([])
-scores_test = np.array([])
+    pesos = np.zeros(10)
 
-pesos = np.zeros(10)
+    for trees in final_model.estimators_:
+        pesos += trees.feature_importances_
 
-for i in range(x_train.shape[1]):
+    pesos /= len(final_model.estimators_)
+    print(pesos)
 
-    randomForest = ensemble.RandomForestRegressor(max_features=i + 1)
 
-    randomForest = randomForest.fit(x_train, y_train)
+def item_G(x_train, y_train):
+    scores_train = np.array([])
+    scores_test = np.array([])
 
-    scores_train = np.append(scores_train,
-                             randomForest.score(x_train, y_train))
-    scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+    pesos = np.zeros(10)
 
-    pesos += randomForest.feature_importances_
+    for i in range(x_train.shape[1]):
 
-plt.figure()
-plt.plot(np.arange(1, 11, 1),
-         scores_train,
-         drawstyle='steps-post',
-         label='Training')
-plt.plot(np.arange(1, 11, 1),
-         scores_test,
-         drawstyle='steps-post',
-         label='Test')
-plt.show()
+        randomForest = ensemble.RandomForestRegressor(max_features=i + 1)
 
-pesos /= x_train.shape[1]
-print("Los pesos son")
-print(pesos)
+        randomForest = randomForest.fit(x_train, y_train)
 
-print("Ahora variando el max deep")
+        scores_train = np.append(scores_train,
+                                randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
-scores_train = np.array([])
-scores_test = np.array([])
+        pesos += randomForest.feature_importances_
 
-pesos = np.zeros(10)
+    plt.figure()
+    plt.plot(np.arange(1, 11, 1),
+            scores_train,
+            drawstyle='steps-post',
+            label='Training')
+    plt.plot(np.arange(1, 11, 1),
+            scores_test,
+            drawstyle='steps-post',
+            label='Test')
+    plt.show()
 
-for i in range(30):
+    pesos /= x_train.shape[1]
+    print("Los pesos son")
+    print(pesos)
 
-    randomForest = ensemble.RandomForestRegressor(max_depth=i + 1)
+    print("Ahora variando el max deep")
 
-    randomForest = randomForest.fit(x_train, y_train)
+    scores_train = np.array([])
+    scores_test = np.array([])
 
-    scores_train = np.append(scores_train,
-                             randomForest.score(x_train, y_train))
-    scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+    pesos = np.zeros(10)
 
-    pesos += randomForest.feature_importances_
+    for i in range(30):
 
-pesos /= 30
-print("Los pesos son")
-print(pesos)
+        randomForest = ensemble.RandomForestRegressor(max_depth=i + 1)
 
-plt.figure()
-plt.plot(np.arange(1, 31, 1),
-         scores_train,
-         drawstyle='steps-post',
-         label='Training')
-plt.plot(np.arange(1, 31, 1),
-         scores_test,
-         drawstyle='steps-post',
-         label='Test')
-plt.show()
+        randomForest = randomForest.fit(x_train, y_train)
 
-# ------------------------------
-print("Inciso H")
-# ------------------------------
+        scores_train = np.append(scores_train,
+                                randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
-scores_train = np.array([])
-scores_test = np.array([])
+        pesos += randomForest.feature_importances_
 
-pesos = np.zeros(10)
+    pesos /= 30
+    print("Los pesos son")
+    print(pesos)
 
-for i in range(x_train.shape[1]):
+    plt.figure()
+    plt.plot(np.arange(1, 31, 1),
+            scores_train,
+            drawstyle='steps-post',
+            label='Training')
+    plt.plot(np.arange(1, 31, 1),
+            scores_test,
+            drawstyle='steps-post',
+            label='Test')
+    plt.show()
 
-    treeRegressor = tree.DecisionTreeRegressor(max_features=i + 1)
-    adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
 
-    adaBoost = adaBoost.fit(x_train, y_train)
+def item_H(x_train, y_train):
+    scores_train = np.array([])
+    scores_test = np.array([])
 
-    scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
-    scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+    pesos = np.zeros(10)
 
-    pesos += adaBoost.feature_importances_
+    for i in range(x_train.shape[1]):
 
-plt.figure()
-plt.plot(np.arange(1, 11, 1),
-         scores_train,
-         drawstyle='steps-post',
-         label='Training')
-plt.plot(np.arange(1, 11, 1),
-         scores_test,
-         drawstyle='steps-post',
-         label='Test')
-plt.show()
+        treeRegressor = tree.DecisionTreeRegressor(max_features=i + 1)
+        adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
 
-pesos /= x_train.shape[1]
-print("Los pesos son")
-print(pesos)
+        adaBoost = adaBoost.fit(x_train, y_train)
 
-print("Ahora variando el max deep")
+        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+        scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
 
-scores_train = np.array([])
-scores_test = np.array([])
+        pesos += adaBoost.feature_importances_
 
-pesos = np.zeros(10)
+    plt.figure()
+    plt.plot(np.arange(1, 11, 1),
+            scores_train,
+            drawstyle='steps-post',
+            label='Training')
+    plt.plot(np.arange(1, 11, 1),
+            scores_test,
+            drawstyle='steps-post',
+            label='Test')
+    plt.show()
 
-for i in range(30):
+    pesos /= x_train.shape[1]
+    print("Los pesos son")
+    print(pesos)
 
-    treeRegressor = tree.DecisionTreeRegressor(max_depth=i + 1)
-    adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
+    print("Ahora variando el max deep")
 
-    adaBoost = adaBoost.fit(x_train, y_train)
+    scores_train = np.array([])
+    scores_test = np.array([])
 
-    scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
-    scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+    pesos = np.zeros(10)
 
+    for i in range(30):
 
-    pesos += adaBoost.feature_importances_
+        treeRegressor = tree.DecisionTreeRegressor(max_depth=i + 1)
+        adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
 
-pesos /= 30
-print("Los pesos son")
-print(pesos)
+        adaBoost = adaBoost.fit(x_train, y_train)
 
-plt.figure()
-plt.plot(np.arange(1, 31, 1),
-         scores_train,
-         drawstyle='steps-post',
-         label='Training')
-plt.plot(np.arange(1, 31, 1),
-         scores_test,
-         drawstyle='steps-post',
-         label='Test')
-plt.show()
+        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+        scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+
+
+        pesos += adaBoost.feature_importances_
+
+    pesos /= 30
+    print("Los pesos son")
+    print(pesos)
+
+    plt.figure()
+    plt.plot(np.arange(1, 31, 1),
+            scores_train,
+            drawstyle='steps-post',
+            label='Training')
+    plt.plot(np.arange(1, 31, 1),
+            scores_test,
+            drawstyle='steps-post',
+            label='Test')
+    plt.show()
+
+
 
 if __name__ == "__main__":
 
     # Abro los datos
     data = pd.read_csv("Carseats.csv", header=0)
 
-    # data['High'] = newVariable(data['Sales'])
+    # Genero la nueva variable 'High'
     data["High"] = data.apply(lambda row: newVariable(row), axis=1)
+    # Reemplazo valores con formato str a int
     data.replace(("Yes", "No"), (1, 0), inplace=True)
     data.replace(("Good", "Medium", "Bad"), (2, 1, 0), inplace=True)
 
     # item a: Spliteo los datos
     train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
     # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
+
+    item_B(train, test, plot=True)
+
+    # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
+    # 'High' para siempre
+    x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
+    x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
