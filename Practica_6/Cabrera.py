@@ -66,17 +66,8 @@ def item_B(train, test, plot=False):
     graph.render("b")
 
 
-
-
-
-
-
-# ------------------------------
-print("Inciso C")
-# ------------------------------
-
 def item_C(x_train, y_train):
-    
+
     # x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
 
     # Creo el arbol
@@ -112,7 +103,6 @@ def item_C(x_train, y_train):
     # print(mse_tests)
 
 
-
 def item_D(x_train, y_train):
     pass
     # print("Precision de Clasificador")
@@ -138,7 +128,6 @@ def item_E(x_train, y_train):
     # ax.set_ylabel("total impurity of leaves")
     # ax.set_title("Total Impurity vs effective alpha for training set")
     # # plt.show()
-
 
     treeRegressor = tree.DecisionTreeRegressor()
 
@@ -210,20 +199,21 @@ def item_G(x_train, y_train):
         randomForest = randomForest.fit(x_train, y_train)
 
         scores_train = np.append(scores_train,
-                                randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+                                 randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test,
+                                randomForest.score(x_test, y_test))
 
         pesos += randomForest.feature_importances_
 
     plt.figure()
     plt.plot(np.arange(1, 11, 1),
-            scores_train,
-            drawstyle='steps-post',
-            label='Training')
+             scores_train,
+             drawstyle='steps-post',
+             label='Training')
     plt.plot(np.arange(1, 11, 1),
-            scores_test,
-            drawstyle='steps-post',
-            label='Test')
+             scores_test,
+             drawstyle='steps-post',
+             label='Test')
     plt.show()
 
     pesos /= x_train.shape[1]
@@ -244,8 +234,9 @@ def item_G(x_train, y_train):
         randomForest = randomForest.fit(x_train, y_train)
 
         scores_train = np.append(scores_train,
-                                randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+                                 randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test,
+                                randomForest.score(x_test, y_test))
 
         pesos += randomForest.feature_importances_
 
@@ -255,13 +246,13 @@ def item_G(x_train, y_train):
 
     plt.figure()
     plt.plot(np.arange(1, 31, 1),
-            scores_train,
-            drawstyle='steps-post',
-            label='Training')
+             scores_train,
+             drawstyle='steps-post',
+             label='Training')
     plt.plot(np.arange(1, 31, 1),
-            scores_test,
-            drawstyle='steps-post',
-            label='Test')
+             scores_test,
+             drawstyle='steps-post',
+             label='Test')
     plt.show()
 
 
@@ -278,20 +269,21 @@ def item_H(x_train, y_train):
 
         adaBoost = adaBoost.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+        scores_train = np.append(scores_train,
+                                 adaBoost.score(x_train, y_train))
         scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
 
         pesos += adaBoost.feature_importances_
 
     plt.figure()
     plt.plot(np.arange(1, 11, 1),
-            scores_train,
-            drawstyle='steps-post',
-            label='Training')
+             scores_train,
+             drawstyle='steps-post',
+             label='Training')
     plt.plot(np.arange(1, 11, 1),
-            scores_test,
-            drawstyle='steps-post',
-            label='Test')
+             scores_test,
+             drawstyle='steps-post',
+             label='Test')
     plt.show()
 
     pesos /= x_train.shape[1]
@@ -312,9 +304,9 @@ def item_H(x_train, y_train):
 
         adaBoost = adaBoost.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+        scores_train = np.append(scores_train,
+                                 adaBoost.score(x_train, y_train))
         scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
-
 
         pesos += adaBoost.feature_importances_
 
@@ -324,15 +316,14 @@ def item_H(x_train, y_train):
 
     plt.figure()
     plt.plot(np.arange(1, 31, 1),
-            scores_train,
-            drawstyle='steps-post',
-            label='Training')
+             scores_train,
+             drawstyle='steps-post',
+             label='Training')
     plt.plot(np.arange(1, 31, 1),
-            scores_test,
-            drawstyle='steps-post',
-            label='Test')
+             scores_test,
+             drawstyle='steps-post',
+             label='Test')
     plt.show()
-
 
 
 if __name__ == "__main__":
