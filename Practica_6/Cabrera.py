@@ -23,6 +23,7 @@ from sklearn import tree, ensemble
 import graphviz
 
 import seaborn as snn
+
 snn.set(font_scale=1)
 snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 
@@ -51,9 +52,9 @@ def item_B(train, test, plot=False):
     treeClassifier = tree.DecisionTreeClassifier()
     treeClassifier = treeClassifier.fit(x_train, y_train)
 
-    print("Item B - Resultados para Tree Classifier")
-    print("Score Train: ", treeClassifier.score(x_train, y_train))
-    print("Score Test: ", treeClassifier.score(x_test, y_test))
+    print("\nItem B - Resultados para Tree Classifier")
+    print("Score Train: {:.2f}".format(treeClassifier.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(treeClassifier.score(x_test, y_test)))
 
     dot_data = tree.export_graphviz(
         treeClassifier,
@@ -67,7 +68,7 @@ def item_B(train, test, plot=False):
         special_characters=True,
     )
     graph = graphviz.Source(dot_data)
-    graph.render("B_Arbol_croped")
+    graph.render(os.path.join(SAVE_PATH, "C_Arbol_croped"))
 
     # print('Resultados sobre los datos de training:')
     # y_true, y_pred = y_train, treeClassifier.predict(x_train)
@@ -101,9 +102,6 @@ def item_B(train, test, plot=False):
     return treeClassifier
 
 
-    
-
-
 def item_C(train, test, plot=False):
     # Eliminamos la variable discreta del dataset
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
@@ -112,9 +110,9 @@ def item_C(train, test, plot=False):
     treeRegressor = tree.DecisionTreeRegressor()
     treeRegressor = treeRegressor.fit(x_train, y_train)
 
-    print("Resultados para Tree Regressor")
-    print(treeRegressor.score(x_train, y_train))
-    print(treeRegressor.score(x_test, y_test))
+    print("\nItem C - Resultados para Tree Regressor")
+    print("Score Train: {:.2f}".format(treeRegressor.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(treeRegressor.score(x_test, y_test)))
 
     dot_data = tree.export_graphviz(
         treeRegressor,
@@ -129,34 +127,48 @@ def item_C(train, test, plot=False):
     )
 
     graph = graphviz.Source(dot_data)
-    graph.render("C_Arbol_croped")
-
-    
+    graph.render(os.path.join(SAVE_PATH, "C_Arbol_croped"))
 
     predict_train = treeRegressor.predict(x_train)
     predict_test = treeRegressor.predict(x_test)
 
     if plot:
-        plt.plot(y_test, predict_test, '--k', label='Target')
-        plt.plot(y_test, predict_test, 'ob', "Predicciones")
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predicciones")
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
-        plt.legend(loc='best', fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE)
         plt.tight_layout()
-        plt.savefig(os.path.join(SAVE_PATH, '1.pdf'),
-                format="pdf",
-                bbox_inches="tight")
-
-    mse_train = np.linalg.norm(y_train - predict_train) / len(y_train)
-    mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
+        plt.savefig(os.path.join(SAVE_PATH, "1.pdf"), format="pdf", bbox_inches="tight")
+        plt.show()
 
     return treeRegressor
 
-    # print(mse_tests)
-
-
 def item_D(train, test):
-    pass
+
+    tClasifier = item_B(train, test, plot=False)
+    tRegressor = item_C(train, test, plot=False)
+
+    x_train, y_train = train.drop(['High', 'Sales'], axis=1), train['High']
+    x_test, y_test = test.drop(['High', 'Sales'], axis=1), test['High']
+
+    acc_train = metrics.accuracy_score(y_train, tClasifier.predict(x_train))
+    acc_test = metrics.accuracy_score(y_test, tClasifier.predict(x_test))
+
+    print("\nItem D - Error en Tree Classifier")
+    print("Error de training: {:.2f}".format(1-acc_train))
+    print("Error de test: {:.2f}".format(1-acc_test))
+
+    x_train, y_train = train.drop(['High', 'Sales'], axis=1), train['Sales']
+    x_test, y_test = test.drop(['High', 'Sales'], axis=1), test['Sales']
+
+    mse_train = metrics.mean_squared_error(y_train, tRegressor.predict(x_train))
+    mse_test = metrics.mean_squared_error(y_test, tRegressor.predict(x_test))
+
+    print("\nItem D - Error en Tree Classifier")
+    print("MSE de training: {:.2f}".format(mse_train))
+    print("MSE de test: {:.2f}".format(mse_test))
+
     # print("Precision de Clasificador")
     # print("Train:", treeClassifier.score(x_train,y_train))
     # print("Test:",treeClassifier.score(x_test,y_test))
@@ -169,7 +181,7 @@ def item_D(train, test):
     # predict_test = treeRegressor.predict(x_test)
 
 
-def item_E(x_train, y_train, x_test, y_test,):
+def item_E(x_train, y_train, x_test, y_test):
     # clf = tree.DecisionTreeClassifier()
     # path = clf.cost_complexity_pruning_path(x_train, y_train)
     # ccp_alphas, impurities = path.ccp_alphas, path.impurities
@@ -183,15 +195,9 @@ def item_E(x_train, y_train, x_test, y_test,):
 
     treeRegressor = tree.DecisionTreeRegressor()
 
-    parameters = {
-        "max_depth": np.arange(1, 20, 1),
-        "ccp_alpha": np.linspace(0, 2, 100)
-    }
+    parameters = {"max_depth": np.arange(1, 20, 1), "ccp_alpha": np.linspace(0, 2, 100)}
 
-    gsCV = GridSearchCV(treeRegressor,
-                        parameters,
-                        verbose=1,
-                        return_train_score=True)
+    gsCV = GridSearchCV(treeRegressor, parameters, verbose=1, return_train_score=True)
 
     gsCV.fit(x_train, y_train)
 
@@ -203,7 +209,7 @@ def item_E(x_train, y_train, x_test, y_test,):
     print(final_model.score(x_test, y_test))
 
 
-def item_F(x_train, y_train, x_test, y_test,):
+def item_F(x_train, y_train, x_test, y_test):
 
     treeRegressor = tree.DecisionTreeRegressor()
     ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
@@ -215,10 +221,7 @@ def item_F(x_train, y_train, x_test, y_test,):
         # 'ccp_alpha': np.linspace(0, 2, 100)
     }
 
-    gsCV = GridSearchCV(ensembleBagging,
-                        parameters,
-                        verbose=1,
-                        return_train_score=True)
+    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=1, return_train_score=True)
 
     gsCV.fit(x_train, y_train)
 
@@ -238,7 +241,7 @@ def item_F(x_train, y_train, x_test, y_test,):
     print(pesos)
 
 
-def item_G(x_train, y_train, x_test, y_test,):
+def item_G(x_train, y_train, x_test, y_test):
     scores_train = np.array([])
     scores_test = np.array([])
 
@@ -250,22 +253,16 @@ def item_G(x_train, y_train, x_test, y_test,):
 
         randomForest = randomForest.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train,
-                                 randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test,
-                                randomForest.score(x_test, y_test))
+        scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
         pesos += randomForest.feature_importances_
 
     plt.figure()
-    plt.plot(np.arange(1, 11, 1),
-             scores_train,
-             drawstyle='steps-post',
-             label='Training')
-    plt.plot(np.arange(1, 11, 1),
-             scores_test,
-             drawstyle='steps-post',
-             label='Test')
+    plt.plot(
+        np.arange(1, 11, 1), scores_train, drawstyle="steps-post", label="Training"
+    )
+    plt.plot(np.arange(1, 11, 1), scores_test, drawstyle="steps-post", label="Test")
     plt.show()
 
     pesos /= x_train.shape[1]
@@ -285,10 +282,8 @@ def item_G(x_train, y_train, x_test, y_test,):
 
         randomForest = randomForest.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train,
-                                 randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test,
-                                randomForest.score(x_test, y_test))
+        scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
         pesos += randomForest.feature_importances_
 
@@ -297,18 +292,14 @@ def item_G(x_train, y_train, x_test, y_test,):
     print(pesos)
 
     plt.figure()
-    plt.plot(np.arange(1, 31, 1),
-             scores_train,
-             drawstyle='steps-post',
-             label='Training')
-    plt.plot(np.arange(1, 31, 1),
-             scores_test,
-             drawstyle='steps-post',
-             label='Test')
+    plt.plot(
+        np.arange(1, 31, 1), scores_train, drawstyle="steps-post", label="Training"
+    )
+    plt.plot(np.arange(1, 31, 1), scores_test, drawstyle="steps-post", label="Test")
     plt.show()
 
 
-def item_H(x_train, y_train, x_test, y_test,):
+def item_H(x_train, y_train, x_test, y_test):
     scores_train = np.array([])
     scores_test = np.array([])
 
@@ -321,21 +312,16 @@ def item_H(x_train, y_train, x_test, y_test,):
 
         adaBoost = adaBoost.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train,
-                                 adaBoost.score(x_train, y_train))
+        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
         scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
 
         pesos += adaBoost.feature_importances_
 
     plt.figure()
-    plt.plot(np.arange(1, 11, 1),
-             scores_train,
-             drawstyle='steps-post',
-             label='Training')
-    plt.plot(np.arange(1, 11, 1),
-             scores_test,
-             drawstyle='steps-post',
-             label='Test')
+    plt.plot(
+        np.arange(1, 11, 1), scores_train, drawstyle="steps-post", label="Training"
+    )
+    plt.plot(np.arange(1, 11, 1), scores_test, drawstyle="steps-post", label="Test")
     plt.show()
 
     pesos /= x_train.shape[1]
@@ -356,8 +342,7 @@ def item_H(x_train, y_train, x_test, y_test,):
 
         adaBoost = adaBoost.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train,
-                                 adaBoost.score(x_train, y_train))
+        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
         scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
 
         pesos += adaBoost.feature_importances_
@@ -367,14 +352,10 @@ def item_H(x_train, y_train, x_test, y_test,):
     print(pesos)
 
     plt.figure()
-    plt.plot(np.arange(1, 31, 1),
-             scores_train,
-             drawstyle='steps-post',
-             label='Training')
-    plt.plot(np.arange(1, 31, 1),
-             scores_test,
-             drawstyle='steps-post',
-             label='Test')
+    plt.plot(
+        np.arange(1, 31, 1), scores_train, drawstyle="steps-post", label="Training"
+    )
+    plt.plot(np.arange(1, 31, 1), scores_test, drawstyle="steps-post", label="Test")
     plt.show()
 
 
@@ -393,11 +374,14 @@ if __name__ == "__main__":
     train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
     # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
 
-    item_B(train, test, plot=True)
+    # item_B(train, test, plot=True)
 
-    item_C(train, test, plot=True)
+    # item_C(train, test, plot=True)
+
+    item_D(train, test)
 
     # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
     # 'High' para siempre
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
+
