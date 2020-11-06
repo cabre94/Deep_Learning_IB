@@ -19,41 +19,23 @@ from sklearn import tree
 from sklearn import ensemble
 import graphviz
 
-# import random
-
-seed = np.random.randint(1e3, size=1)[0]
-np.random.seed(seed)
-# random.seed(10)
-
 import seaborn as snn
 snn.set(font_scale=1)
 snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 
-# Abro los datos
-data = pd.read_csv("Carseats.csv", header=0)
+seed = np.random.randint(1e3, size=1)[0]
+np.random.seed(seed)
+
+# random.seed(10)
 
 
-# Creo la nueva variable 'High'
+# Funcion para crea la nueva variable 'High'
 def newVariable(row):
     if row["Sales"] >= 8:
-        # return 1
         return "Yes"
     else:
-        # return 0
         return "No"
 
-
-# data['High'] = newVariable(data['Sales'])
-data["High"] = data.apply(lambda row: newVariable(row), axis=1)
-data.replace(("Yes", "No"), (1, 0), inplace=True)
-data.replace(("Good", "Medium", "Bad"), (2, 1, 0), inplace=True)
-
-# Spliteo los datos
-train, test = train_test_split(data,
-                               test_size=0.3,
-                               random_state=seed,
-                               stratify=data["High"])
-# train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
 
 # ------------------------------
 print("Inciso B")
@@ -187,7 +169,7 @@ ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
 parameters = {
     "n_estimators": np.arange(10, 100, 5),
-    "max_samples": np.random.uniform(0,1,100),
+    "max_samples": np.random.uniform(0, 1, 100),
     "bootstrap": ["True"]
     # 'ccp_alpha': np.linspace(0, 2, 100)
 }
@@ -225,18 +207,25 @@ pesos = np.zeros(10)
 
 for i in range(x_train.shape[1]):
 
-    randomForest = ensemble.RandomForestRegressor(max_features=i+1)
+    randomForest = ensemble.RandomForestRegressor(max_features=i + 1)
 
     randomForest = randomForest.fit(x_train, y_train)
 
-    scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+    scores_train = np.append(scores_train,
+                             randomForest.score(x_train, y_train))
     scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
     pesos += randomForest.feature_importances_
 
 plt.figure()
-plt.plot(np.arange(1,11,1),scores_train,drawstyle='steps-post', label='Training')
-plt.plot(np.arange(1,11,1),scores_test,drawstyle='steps-post', label='Test')
+plt.plot(np.arange(1, 11, 1),
+         scores_train,
+         drawstyle='steps-post',
+         label='Training')
+plt.plot(np.arange(1, 11, 1),
+         scores_test,
+         drawstyle='steps-post',
+         label='Test')
 plt.show()
 
 pesos /= x_train.shape[1]
@@ -252,11 +241,12 @@ pesos = np.zeros(10)
 
 for i in range(30):
 
-    randomForest = ensemble.RandomForestRegressor(max_depth=i+1)
+    randomForest = ensemble.RandomForestRegressor(max_depth=i + 1)
 
     randomForest = randomForest.fit(x_train, y_train)
 
-    scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+    scores_train = np.append(scores_train,
+                             randomForest.score(x_train, y_train))
     scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
 
     pesos += randomForest.feature_importances_
@@ -266,11 +256,15 @@ print("Los pesos son")
 print(pesos)
 
 plt.figure()
-plt.plot(np.arange(1,31,1),scores_train,drawstyle='steps-post',label='Training')
-plt.plot(np.arange(1,31,1),scores_test,drawstyle='steps-post', label='Test')
+plt.plot(np.arange(1, 31, 1),
+         scores_train,
+         drawstyle='steps-post',
+         label='Training')
+plt.plot(np.arange(1, 31, 1),
+         scores_test,
+         drawstyle='steps-post',
+         label='Test')
 plt.show()
-
-
 
 # ------------------------------
 print("Inciso H")
@@ -282,8 +276,8 @@ scores_test = np.array([])
 pesos = np.zeros(10)
 
 for i in range(x_train.shape[1]):
-    
-    treeRegressor = tree.DecisionTreeRegressor(max_features=i+1)
+
+    treeRegressor = tree.DecisionTreeRegressor(max_features=i + 1)
     adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
 
     adaBoost = adaBoost.fit(x_train, y_train)
@@ -294,8 +288,14 @@ for i in range(x_train.shape[1]):
     pesos += adaBoost.feature_importances_
 
 plt.figure()
-plt.plot(np.arange(1,11,1),scores_train,drawstyle='steps-post', label='Training')
-plt.plot(np.arange(1,11,1),scores_test,drawstyle='steps-post', label='Test')
+plt.plot(np.arange(1, 11, 1),
+         scores_train,
+         drawstyle='steps-post',
+         label='Training')
+plt.plot(np.arange(1, 11, 1),
+         scores_test,
+         drawstyle='steps-post',
+         label='Test')
 plt.show()
 
 pesos /= x_train.shape[1]
@@ -311,7 +311,7 @@ pesos = np.zeros(10)
 
 for i in range(30):
 
-    treeRegressor = tree.DecisionTreeRegressor(max_depth=i+1)
+    treeRegressor = tree.DecisionTreeRegressor(max_depth=i + 1)
     adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
 
     adaBoost = adaBoost.fit(x_train, y_train)
@@ -319,7 +319,6 @@ for i in range(30):
     scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
     scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
 
-    import ipdb; ipdb.set_trace(context=15)  # XXX BREAKPOINT
 
     pesos += adaBoost.feature_importances_
 
@@ -328,6 +327,26 @@ print("Los pesos son")
 print(pesos)
 
 plt.figure()
-plt.plot(np.arange(1,31,1),scores_train,drawstyle='steps-post',label='Training')
-plt.plot(np.arange(1,31,1),scores_test,drawstyle='steps-post', label='Test')
+plt.plot(np.arange(1, 31, 1),
+         scores_train,
+         drawstyle='steps-post',
+         label='Training')
+plt.plot(np.arange(1, 31, 1),
+         scores_test,
+         drawstyle='steps-post',
+         label='Test')
 plt.show()
+
+if __name__ == "__main__":
+
+    # Abro los datos
+    data = pd.read_csv("Carseats.csv", header=0)
+
+    # data['High'] = newVariable(data['Sales'])
+    data["High"] = data.apply(lambda row: newVariable(row), axis=1)
+    data.replace(("Yes", "No"), (1, 0), inplace=True)
+    data.replace(("Good", "Medium", "Bad"), (2, 1, 0), inplace=True)
+
+    # item a: Spliteo los datos
+    train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
+    # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
