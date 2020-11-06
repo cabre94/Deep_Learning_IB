@@ -134,7 +134,8 @@ def item_C(train, test, plot=False):
 
     if plot:
         plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
-        plt.plot(y_test, predict_test, "ob", label="Predicciones")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
         plt.legend(loc="best", fontsize=FONTSIZE)
@@ -163,26 +164,34 @@ def item_D(train, test, tClasifier, tRegressor):
     mse_train = metrics.mean_squared_error(y_train, tRegressor.predict(x_train))
     mse_test = metrics.mean_squared_error(y_test, tRegressor.predict(x_test))
 
-    print("\nItem D - Error en Tree Classifier")
+    print("\nItem D - Error en Tree Regressor")
     print("MSE de training: {:.2f}".format(mse_train))
     print("MSE de test: {:.2f}".format(mse_test))
 
+def printFeatureImportances(x_train, final_model):
+    zipped = zip(x_train.keys(), final_model.feature_importances_)
+    sort = sorted(zipped)
+    tuples = zip(*sort)
+
+    print("Atributo\tImportancia")
+    for feature, importance in tuples:
+        print("{}\t{:.3f}".format(feature, importance))
 
 def item_E(x_train, y_train, x_test, y_test, plot=False):
 
     treeRegressor = tree.DecisionTreeRegressor()
 
-    parameters = {"max_depth": np.arange(1, 20, 1), "ccp_alpha": np.linspace(0, 1, 101)}
+    parameters = {"max_depth": np.arange(1, 20, 1), "ccp_alpha": np.linspace(0, 1, 201)}
 
     gsCV = GridSearchCV(treeRegressor, parameters, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem E")
-    print("Mejores parámetros obtenido del GridSearchCV:")
+    print("Mejores parámetros obtenidos del GridSearchCV:")
     print(gsCV.best_params_)
     final_model = gsCV.best_estimator_
 
-    print("Error con modelo optimizado con GridSearchCV")
+    print("Resultados con modelo optimizado con GridSearchCV")
     print("Score Train: {:.2f}".format(final_model.score(x_train, y_train)))
     print("Score Test: {:.2f}".format(final_model.score(x_test, y_test)))
 
@@ -198,18 +207,24 @@ def item_E(x_train, y_train, x_test, y_test, plot=False):
 
     if plot:
         plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
-        plt.plot(y_test, predict_test, "ob", label="Predicciones")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
-        plt.legend(loc="best", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
         plt.savefig(os.path.join(SAVE_PATH, "E.pdf"), format="pdf", bbox_inches="tight")
         plt.show()
     
+    printFeatureImportances(x_train, final_model)
+
     return final_model
 
 
-def item_F(x_train, y_train, x_test, y_test):
+
+
+
+def item_F(x_train, y_train, x_test, y_test, plot=True):
 
     treeRegressor = tree.DecisionTreeRegressor()
     ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
@@ -217,28 +232,55 @@ def item_F(x_train, y_train, x_test, y_test):
     parameters = {
         "n_estimators": np.arange(10, 100, 5),
         "max_samples": np.random.uniform(0, 1, 100),
-        "bootstrap": ["True"]
-        # 'ccp_alpha': np.linspace(0, 2, 100)
+        "bootstrap": ["True"],
     }
 
-    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=1, return_train_score=True)
-
+    gsCV = GridSearchCV(ensembleBagging, parameters, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
-    print("Mejores parámetros:")
+    print("\nItem F")
+    print("Mejores parámetros obtenidos del Bagging:")
     print(gsCV.best_params_)
     final_model = gsCV.best_estimator_
 
-    print("Resultados para Bagging")
-    print(final_model.score(x_test, y_test))
+    print("Resultados con modelo optimizado con Bagging")
+    print("Score Train: {:.2f}".format(final_model.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(final_model.score(x_test, y_test)))
 
-    pesos = np.zeros(10)
+    predict_train = final_model.predict(x_train)
+    predict_test = final_model.predict(x_test)
 
-    for trees in final_model.estimators_:
-        pesos += trees.feature_importances_
+    mse_train = metrics.mean_squared_error(y_train, predict_train)
+    mse_test = metrics.mean_squared_error(y_test, predict_test)
 
-    pesos /= len(final_model.estimators_)
-    print(pesos)
+    print("\nItem F - Error con modelo optimizado con Bagging")
+    print("MSE de training: {:.2f}".format(mse_train))
+    print("MSE de test: {:.2f}".format(mse_test))
+
+    if plot:
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE)
+        plt.tight_layout()
+        plt.savefig(os.path.join(SAVE_PATH, "F.pdf"), format="pdf", bbox_inches="tight")
+        plt.show()
+
+    import ipdb
+
+    ipdb.set_trace(context=15)  # XXX BREAKPOINT
+
+    # pesos = np.zeros(10)
+
+    # for trees in final_model.estimators_:
+    #     pesos += trees.feature_importances_
+
+    # pesos /= len(final_model.estimators_)
+    # print(pesos)
+
+    return final_model
 
 
 def item_G(x_train, y_train, x_test, y_test):
@@ -373,11 +415,11 @@ if __name__ == "__main__":
     # item a: Spliteo los datos
     train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
 
-    tClasifier = item_B(train, test, plot=True)
+    # tClasifier = item_B(train, test, plot=True)
 
-    tRegressor = item_C(train, test, plot=True)
+    # tRegressor = item_C(train, test, plot=True)
 
-    item_D(train, test, tClasifier, tRegressor)
+    # item_D(train, test, tClasifier, tRegressor)
 
     # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
     # 'High' para siempre
@@ -385,4 +427,6 @@ if __name__ == "__main__":
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
 
     item_E(x_train, y_train, x_test, y_test, plot=True)
+
+    # item_F(x_train, y_train, x_test, y_test, plot=True)
 
