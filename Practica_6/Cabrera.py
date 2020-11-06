@@ -26,7 +26,6 @@ np.random.seed(seed)
 # random.seed(10)
 
 import seaborn as snn
-
 snn.set(font_scale=1)
 snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 
@@ -183,44 +182,152 @@ print("Inciso F")
 
 from sklearn.model_selection import GridSearchCV
 
-# treeRegressor = tree.DecisionTreeRegressor()
-# ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
+treeRegressor = tree.DecisionTreeRegressor()
+ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
-# parameters = {
-#     "n_estimators": np.arange(10, 100, 5),
-#     "max_samples": np.random.uniform(0,1,100),
-#     "bootstrap": ["True"]
-#     # 'ccp_alpha': np.linspace(0, 2, 100)
-# }
+parameters = {
+    "n_estimators": np.arange(10, 100, 5),
+    "max_samples": np.random.uniform(0,1,100),
+    "bootstrap": ["True"]
+    # 'ccp_alpha': np.linspace(0, 2, 100)
+}
 
-# gsCV = GridSearchCV(ensembleBagging,
-#                     parameters,
-#                     verbose=1,
-#                     return_train_score=True)
+gsCV = GridSearchCV(ensembleBagging,
+                    parameters,
+                    verbose=1,
+                    return_train_score=True)
 
-# gsCV.fit(x_train, y_train)
+gsCV.fit(x_train, y_train)
 
-# print("Mejores parámetros:")
-# print(gsCV.best_params_)
-# final_model = gsCV.best_estimator_
+print("Mejores parámetros:")
+print(gsCV.best_params_)
+final_model = gsCV.best_estimator_
 
-# print("Resultados para Bagging")
-# print(final_model.score(x_test, y_test))
+print("Resultados para Bagging")
+print(final_model.score(x_test, y_test))
 
-# pesos = np.zeros(10)
+pesos = np.zeros(10)
 
-# for trees in final_model.estimators_:
-#     pesos += trees.feature_importances_
+for trees in final_model.estimators_:
+    pesos += trees.feature_importances_
 
-# pesos /= len(final_model.estimators_)
-# print(pesos)
+pesos /= len(final_model.estimators_)
+print(pesos)
 
 # ------------------------------
 print("Inciso G")
 # ------------------------------
 
-randomForest = ensemble.RandomForestRegressor()
+scores_train = np.array([])
+scores_test = np.array([])
+
+pesos = np.zeros(10)
+
+for i in range(x_train.shape[1]):
+
+    randomForest = ensemble.RandomForestRegressor(max_features=i+1)
+
+    randomForest = randomForest.fit(x_train, y_train)
+
+    scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+    scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+
+    pesos += randomForest.feature_importances_
+
+plt.figure()
+plt.plot(np.arange(1,11,1),scores_train,drawstyle='steps-post', label='Training')
+plt.plot(np.arange(1,11,1),scores_test,drawstyle='steps-post', label='Test')
+plt.show()
+
+pesos /= x_train.shape[1]
+print("Los pesos son")
+print(pesos)
+
+print("Ahora variando el max deep")
+
+scores_train = np.array([])
+scores_test = np.array([])
+
+pesos = np.zeros(10)
+
+for i in range(30):
+
+    randomForest = ensemble.RandomForestRegressor(max_depth=i+1)
+
+    randomForest = randomForest.fit(x_train, y_train)
+
+    scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
+    scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+
+    pesos += randomForest.feature_importances_
+
+pesos /= 30
+print("Los pesos son")
+print(pesos)
+
+plt.figure()
+plt.plot(np.arange(1,31,1),scores_train,drawstyle='steps-post',label='Training')
+plt.plot(np.arange(1,31,1),scores_test,drawstyle='steps-post', label='Test')
+plt.show()
+
+
 
 # ------------------------------
 print("Inciso H")
 # ------------------------------
+
+scores_train = np.array([])
+scores_test = np.array([])
+
+pesos = np.zeros(10)
+
+for i in range(x_train.shape[1]):
+    
+    treeRegressor = tree.DecisionTreeRegressor(max_features=i+1)
+    adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
+
+    adaBoost = adaBoost.fit(x_train, y_train)
+
+    scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+    scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+
+    pesos += adaBoost.feature_importances_
+
+plt.figure()
+plt.plot(np.arange(1,11,1),scores_train,drawstyle='steps-post', label='Training')
+plt.plot(np.arange(1,11,1),scores_test,drawstyle='steps-post', label='Test')
+plt.show()
+
+pesos /= x_train.shape[1]
+print("Los pesos son")
+print(pesos)
+
+print("Ahora variando el max deep")
+
+scores_train = np.array([])
+scores_test = np.array([])
+
+pesos = np.zeros(10)
+
+for i in range(30):
+
+    treeRegressor = tree.DecisionTreeRegressor(max_depth=i+1)
+    adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
+
+    adaBoost = adaBoost.fit(x_train, y_train)
+
+    scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
+    scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+
+    import ipdb; ipdb.set_trace(context=15)  # XXX BREAKPOINT
+
+    pesos += adaBoost.feature_importances_
+
+pesos /= 30
+print("Los pesos son")
+print(pesos)
+
+plt.figure()
+plt.plot(np.arange(1,31,1),scores_train,drawstyle='steps-post',label='Training')
+plt.plot(np.arange(1,31,1),scores_test,drawstyle='steps-post', label='Test')
+plt.show()
