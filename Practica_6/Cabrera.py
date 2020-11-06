@@ -68,7 +68,7 @@ def item_B(train, test, plot=False):
         special_characters=True,
     )
     graph = graphviz.Source(dot_data)
-    graph.render(os.path.join(SAVE_PATH, "C_Arbol_croped"))
+    graph.render(os.path.join(SAVE_PATH, "B_Arbol_croped"))
 
     # print('Resultados sobre los datos de training:')
     # y_true, y_pred = y_train, treeClassifier.predict(x_train)
@@ -139,28 +139,26 @@ def item_C(train, test, plot=False):
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
         plt.legend(loc="best", fontsize=FONTSIZE)
         plt.tight_layout()
-        plt.savefig(os.path.join(SAVE_PATH, "1.pdf"), format="pdf", bbox_inches="tight")
+        plt.savefig(os.path.join(SAVE_PATH, "C.pdf"), format="pdf", bbox_inches="tight")
         plt.show()
 
     return treeRegressor
 
-def item_D(train, test):
 
-    tClasifier = item_B(train, test, plot=False)
-    tRegressor = item_C(train, test, plot=False)
+def item_D(train, test, tClasifier, tRegressor):
 
-    x_train, y_train = train.drop(['High', 'Sales'], axis=1), train['High']
-    x_test, y_test = test.drop(['High', 'Sales'], axis=1), test['High']
+    x_train, y_train = train.drop(["High", "Sales"], axis=1), train["High"]
+    x_test, y_test = test.drop(["High", "Sales"], axis=1), test["High"]
 
     acc_train = metrics.accuracy_score(y_train, tClasifier.predict(x_train))
     acc_test = metrics.accuracy_score(y_test, tClasifier.predict(x_test))
 
     print("\nItem D - Error en Tree Classifier")
-    print("Error de training: {:.2f}".format(1-acc_train))
-    print("Error de test: {:.2f}".format(1-acc_test))
+    print("Error de training: {:.2f}".format(1 - acc_train))
+    print("Error de test: {:.2f}".format(1 - acc_test))
 
-    x_train, y_train = train.drop(['High', 'Sales'], axis=1), train['Sales']
-    x_test, y_test = test.drop(['High', 'Sales'], axis=1), test['Sales']
+    x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
+    x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
 
     mse_train = metrics.mean_squared_error(y_train, tRegressor.predict(x_train))
     mse_test = metrics.mean_squared_error(y_test, tRegressor.predict(x_test))
@@ -169,44 +167,46 @@ def item_D(train, test):
     print("MSE de training: {:.2f}".format(mse_train))
     print("MSE de test: {:.2f}".format(mse_test))
 
-    # print("Precision de Clasificador")
-    # print("Train:", treeClassifier.score(x_train,y_train))
-    # print("Test:",treeClassifier.score(x_test,y_test))
 
-    # print("Precision de Clasificador")
-    # print("Train:", treeRegressor.score(x_train,y_train))
-    # print("Test:", treeRegressor.score(x_test,y_test))
-
-    # predict_train = treeRegressor.predict(x_train)
-    # predict_test = treeRegressor.predict(x_test)
-
-
-def item_E(x_train, y_train, x_test, y_test):
-    # clf = tree.DecisionTreeClassifier()
-    # path = clf.cost_complexity_pruning_path(x_train, y_train)
-    # ccp_alphas, impurities = path.ccp_alphas, path.impurities
-
-    # fig, ax = plt.subplots()
-    # ax.plot(ccp_alphas[:-1], impurities[:-1], marker='o', drawstyle="steps-post")
-    # ax.set_xlabel("effective alpha")
-    # ax.set_ylabel("total impurity of leaves")
-    # ax.set_title("Total Impurity vs effective alpha for training set")
-    # # plt.show()
+def item_E(x_train, y_train, x_test, y_test, plot=False):
 
     treeRegressor = tree.DecisionTreeRegressor()
 
-    parameters = {"max_depth": np.arange(1, 20, 1), "ccp_alpha": np.linspace(0, 2, 100)}
+    parameters = {"max_depth": np.arange(1, 20, 1), "ccp_alpha": np.linspace(0, 1, 101)}
 
-    gsCV = GridSearchCV(treeRegressor, parameters, verbose=1, return_train_score=True)
-
+    gsCV = GridSearchCV(treeRegressor, parameters, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
-    print("Mejores parámetros:")
+    print("\nItem E")
+    print("Mejores parámetros obtenido del GridSearchCV:")
     print(gsCV.best_params_)
     final_model = gsCV.best_estimator_
 
-    print("Resultados para Prunnig")
-    print(final_model.score(x_test, y_test))
+    print("Error con modelo optimizado con GridSearchCV")
+    print("Score Train: {:.2f}".format(final_model.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(final_model.score(x_test, y_test)))
+
+    predict_train = final_model.predict(x_train)
+    predict_test = final_model.predict(x_test)
+
+    mse_train = metrics.mean_squared_error(y_train, predict_train)
+    mse_test = metrics.mean_squared_error(y_test, predict_test)
+
+    print("\nItem E - Error con modelo optimizado con GridSearchCV")
+    print("MSE de training: {:.2f}".format(mse_train))
+    print("MSE de test: {:.2f}".format(mse_test))
+
+    if plot:
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predicciones")
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE)
+        plt.tight_layout()
+        plt.savefig(os.path.join(SAVE_PATH, "E.pdf"), format="pdf", bbox_inches="tight")
+        plt.show()
+    
+    return final_model
 
 
 def item_F(x_train, y_train, x_test, y_test):
@@ -363,25 +363,26 @@ if __name__ == "__main__":
 
     # Abro los datos
     data = pd.read_csv("Carseats.csv", header=0)
-
     # Genero la nueva variable 'High'
     data["High"] = data.apply(lambda row: newVariable(row), axis=1)
+
     # Reemplazo valores con formato str a int
     data.replace(("Yes", "No"), (1, 0), inplace=True)
     data.replace(("Good", "Medium", "Bad"), (2, 1, 0), inplace=True)
 
     # item a: Spliteo los datos
     train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
-    # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
 
-    # item_B(train, test, plot=True)
+    tClasifier = item_B(train, test, plot=True)
 
-    # item_C(train, test, plot=True)
+    tRegressor = item_C(train, test, plot=True)
 
-    item_D(train, test)
+    item_D(train, test, tClasifier, tRegressor)
 
     # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
     # 'High' para siempre
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
+
+    item_E(x_train, y_train, x_test, y_test, plot=True)
 
