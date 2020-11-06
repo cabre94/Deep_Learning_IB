@@ -9,6 +9,9 @@ GitHub: https://github.com/cabre94
 GitLab: https://gitlab.com/cabre94
 Description:
 """
+# from sklearn.metrics import classification_report, accuracy_score
+# from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn import metrics
 
 import os
 import numpy as np
@@ -26,7 +29,10 @@ snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 seed = np.random.randint(1e3, size=1)[0]
 np.random.seed(seed)
 
-# random.seed(10)
+FONTSIZE = 15
+SAVE_PATH = "Figuras"
+if not os.path.exists(SAVE_PATH):
+    os.makedirs(SAVE_PATH)
 
 
 # Funcion para crea la nueva variable 'High'
@@ -41,20 +47,18 @@ def item_B(train, test, plot=False):
     # Eliminamos las variables continuas
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["High"]
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["High"]
-    # x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
 
-    # Creo el arbol
     treeClassifier = tree.DecisionTreeClassifier()
     treeClassifier = treeClassifier.fit(x_train, y_train)
 
-    print("Resultados para Tree Classifier")
-    print(treeClassifier.score(x_train, y_train))
-    print(treeClassifier.score(x_test, y_test))
-    # print(treeClassifier.score(x_val,y_val))
+    print("Item B - Resultados para Tree Classifier")
+    print("Score Train: ", treeClassifier.score(x_train, y_train))
+    print("Score Test: ", treeClassifier.score(x_test, y_test))
 
     dot_data = tree.export_graphviz(
         treeClassifier,
         out_file=None,
+        max_depth=4,
         filled=True,
         rounded=True,
         label="root",
@@ -63,21 +67,54 @@ def item_B(train, test, plot=False):
         special_characters=True,
     )
     graph = graphviz.Source(dot_data)
-    graph.render("b")
+    graph.render("B_Arbol_croped")
+
+    # print('Resultados sobre los datos de training:')
+    # y_true, y_pred = y_train, treeClassifier.predict(x_train)
+    # print(metrics.classification_report(y_true, y_pred))
+
+    # print('Resultados sobre los datos de test:')
+    # y_true, y_pred = y_test, treeClassifier.predict(x_test)
+    # print(metrics.classification_report(y_true, y_pred))
+
+    # y_scores = treeClassifier.predict_proba(x_train)
+    # fpr, tpr, thresholds = metrics.roc_curve(y_train, y_scores[:, 1])
+    # print('AUC training ', metrics.roc_auc_score(y_train, y_scores[:, 1]))
+    # y_scores_test = treeClassifier.predict_proba(x_test)
+    # fpr_test, tpr_test, thresholds = metrics.roc_curve(y_test, y_scores_test[:, 1])
+    # print('AUC test', metrics.roc_auc_score(y_test, y_scores_test[:, 1]))
+
+    # fig = plt.figure(figsize=(8,6))
+    # plt.plot(fpr, tpr,lw=2, label='Training')
+    # plt.plot(fpr_test, tpr_test, label='Test')
+    # plt.title('ROC curve', fontsize=16)
+    # plt.xlabel('False positive ratio', fontsize=14)
+    # plt.ylabel('True positive ratio')
+    # plt.legend(fontsize=14)
+    # #plt.savefig('ROC_b_1.pdf', format='pdf')
+    # plt.show()
+
+    # fig = metrics.plot_roc_curve(treeClassifier, x_train, y_train, label='Training')
+    # metrics.plot_roc_curve(treeClassifier, x_test, y_test, ax=fig.ax_, label='Test')
+    # plt.show()
+
+    return treeClassifier
 
 
-def item_C(x_train, y_train):
+    
 
-    # x_val, y_val = val.drop(['High', 'Sales'], axis=1), val['High']
 
-    # Creo el arbol
+def item_C(train, test, plot=False):
+    # Eliminamos la variable discreta del dataset
+    x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
+    x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
+
     treeRegressor = tree.DecisionTreeRegressor()
     treeRegressor = treeRegressor.fit(x_train, y_train)
 
     print("Resultados para Tree Regressor")
     print(treeRegressor.score(x_train, y_train))
     print(treeRegressor.score(x_test, y_test))
-    # print(treeClassifier.score(x_val,y_val))
 
     dot_data = tree.export_graphviz(
         treeRegressor,
@@ -92,18 +129,33 @@ def item_C(x_train, y_train):
     )
 
     graph = graphviz.Source(dot_data)
-    graph.render("c")
+    graph.render("C_Arbol_croped")
+
+    
 
     predict_train = treeRegressor.predict(x_train)
     predict_test = treeRegressor.predict(x_test)
 
+    if plot:
+        plt.plot(y_test, predict_test, '--k', label='Target')
+        plt.plot(y_test, predict_test, 'ob', "Predicciones")
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc='best', fontsize=FONTSIZE)
+        plt.tight_layout()
+        plt.savefig(os.path.join(SAVE_PATH, '1.pdf'),
+                format="pdf",
+                bbox_inches="tight")
+
     mse_train = np.linalg.norm(y_train - predict_train) / len(y_train)
     mse_tests = np.linalg.norm(y_test - predict_test) / len(y_test)
+
+    return treeRegressor
 
     # print(mse_tests)
 
 
-def item_D(x_train, y_train):
+def item_D(train, test):
     pass
     # print("Precision de Clasificador")
     # print("Train:", treeClassifier.score(x_train,y_train))
@@ -117,7 +169,7 @@ def item_D(x_train, y_train):
     # predict_test = treeRegressor.predict(x_test)
 
 
-def item_E(x_train, y_train):
+def item_E(x_train, y_train, x_test, y_test,):
     # clf = tree.DecisionTreeClassifier()
     # path = clf.cost_complexity_pruning_path(x_train, y_train)
     # ccp_alphas, impurities = path.ccp_alphas, path.impurities
@@ -151,7 +203,7 @@ def item_E(x_train, y_train):
     print(final_model.score(x_test, y_test))
 
 
-def item_F(x_train, y_train):
+def item_F(x_train, y_train, x_test, y_test,):
 
     treeRegressor = tree.DecisionTreeRegressor()
     ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
@@ -186,7 +238,7 @@ def item_F(x_train, y_train):
     print(pesos)
 
 
-def item_G(x_train, y_train):
+def item_G(x_train, y_train, x_test, y_test,):
     scores_train = np.array([])
     scores_test = np.array([])
 
@@ -256,7 +308,7 @@ def item_G(x_train, y_train):
     plt.show()
 
 
-def item_H(x_train, y_train):
+def item_H(x_train, y_train, x_test, y_test,):
     scores_train = np.array([])
     scores_test = np.array([])
 
@@ -342,6 +394,8 @@ if __name__ == "__main__":
     # train, val = train_test_split(train, test_size=0.2, stratify=train['High'])
 
     item_B(train, test, plot=True)
+
+    item_C(train, test, plot=True)
 
     # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
     # 'High' para siempre
