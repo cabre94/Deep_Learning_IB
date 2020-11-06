@@ -134,13 +134,25 @@ def item_C(train, test, plot=False):
 
     if plot:
         plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
-        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
         plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
         plt.legend(loc="best", fontsize=FONTSIZE)
         plt.tight_layout()
-        plt.savefig(os.path.join(SAVE_PATH, "C.pdf"), format="pdf", bbox_inches="tight")
+        plt.savefig(
+            os.path.join(SAVE_PATH, "C_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
+
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "C_Test.pdf"), format="pdf", bbox_inches="tight"
+        )
         plt.show()
 
     return treeRegressor
@@ -168,14 +180,18 @@ def item_D(train, test, tClasifier, tRegressor):
     print("MSE de training: {:.2f}".format(mse_train))
     print("MSE de test: {:.2f}".format(mse_test))
 
+
 def printFeatureImportances(x_train, final_model):
-    zipped = zip(x_train.keys(), final_model.feature_importances_)
-    sort = sorted(zipped)
+    zipped = zip(final_model.feature_importances_, x_train.keys())
+    sort = sorted(zipped, reverse=True)
     tuples = zip(*sort)
 
+    importance, features = [list(tuple) for tuple in tuples]
+
     print("Atributo\tImportancia")
-    for feature, importance in tuples:
-        print("{}\t{:.3f}".format(feature, importance))
+    for i in range(len(features)):
+        print("{}\t{:.3f}".format(features[i], importance[i]))
+
 
 def item_E(x_train, y_train, x_test, y_test, plot=False):
 
@@ -207,21 +223,28 @@ def item_E(x_train, y_train, x_test, y_test, plot=False):
 
     if plot:
         plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
-        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
         plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
         plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
-        plt.savefig(os.path.join(SAVE_PATH, "E.pdf"), format="pdf", bbox_inches="tight")
+        plt.savefig(
+            os.path.join(SAVE_PATH, "E_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
         plt.show()
-    
-    printFeatureImportances(x_train, final_model)
+
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "E_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
 
     return final_model
-
-
-
 
 
 def item_F(x_train, y_train, x_test, y_test, plot=True):
@@ -230,12 +253,12 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
     ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
     parameters = {
-        "n_estimators": np.arange(10, 100, 5),
-        "max_samples": np.random.uniform(0, 1, 100),
+        "n_estimators": np.arange(10, 100, 10),
+        "max_samples": np.random.uniform(0.2, 1, 50),
         "bootstrap": ["True"],
     }
 
-    gsCV = GridSearchCV(ensembleBagging, parameters, return_train_score=True)
+    gsCV = GridSearchCV(ensembleBagging, parameters,verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem F")
@@ -259,31 +282,96 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
 
     if plot:
         plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
-        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
         plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
         plt.xlabel("Sales reales", fontsize=FONTSIZE)
         plt.ylabel("Sales predichos", fontsize=FONTSIZE)
-        plt.legend(loc="best", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
-        plt.savefig(os.path.join(SAVE_PATH, "F.pdf"), format="pdf", bbox_inches="tight")
+        plt.savefig(
+            os.path.join(SAVE_PATH, "F_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
         plt.show()
 
-    import ipdb
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "F_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
 
-    ipdb.set_trace(context=15)  # XXX BREAKPOINT
-
-    # pesos = np.zeros(10)
-
-    # for trees in final_model.estimators_:
-    #     pesos += trees.feature_importances_
-
-    # pesos /= len(final_model.estimators_)
-    # print(pesos)
+    printFeatureImportances(x_train, final_model)
 
     return final_model
 
 
-def item_G(x_train, y_train, x_test, y_test):
+def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
+
+    randomForest = ensemble.RandomForestRegressor()
+
+    parameters = {
+        "max_depth": np.arange(1, 20, 1),
+        "ccp_alpha": np.linspace(0, 1, 201),
+        "n_estimators": np.arange(10, 100, 10),
+        "max_samples": np.random.uniform(0, 1, 50),
+    }
+
+    gsCV = GridSearchCV(randomForest, parameters, return_train_score=True)
+    gsCV.fit(x_train, y_train)
+
+    print("\nItem G")
+    print("Mejores parámetros obtenidos del Random Forest:")
+    print(gsCV.best_params_)
+    final_model = gsCV.best_estimator_
+
+    print("Resultados con modelo optimizado con Random Forest")
+    print("Score Train: {:.2f}".format(final_model.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(final_model.score(x_test, y_test)))
+
+    predict_train = final_model.predict(x_train)
+    predict_test = final_model.predict(x_test)
+
+    mse_train = metrics.mean_squared_error(y_train, predict_train)
+    mse_test = metrics.mean_squared_error(y_test, predict_test)
+
+    print("\nItem G - Error con modelo optimizado con Random Forest")
+    print("MSE de training: {:.2f}".format(mse_train))
+    print("MSE de test: {:.2f}".format(mse_test))
+
+    if plot:
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "G_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
+
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "G_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
+
+    printFeatureImportances(x_train, final_model)
+
+    return final_model
+
+
+
+
+def item_G_Barrido(x_train, y_train, x_test, y_test, plot=False):
     scores_train = np.array([])
     scores_test = np.array([])
 
@@ -426,7 +514,9 @@ if __name__ == "__main__":
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
 
-    item_E(x_train, y_train, x_test, y_test, plot=True)
+    # item_E(x_train, y_train, x_test, y_test, plot=True)
 
-    # item_F(x_train, y_train, x_test, y_test, plot=True)
+    item_F(x_train, y_train, x_test, y_test, plot=True)
+
+    randomForest = item_G_Mejora(x_train, y_train, x_test, y_test, plot=True)
 
