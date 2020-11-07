@@ -30,6 +30,8 @@ snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 seed = np.random.randint(1e3, size=1)[0]
 np.random.seed(seed)
 
+print("Semilla: {}\n".format(seed))
+
 FONTSIZE = 15
 SAVE_PATH = "Figuras"
 if not os.path.exists(SAVE_PATH):
@@ -211,7 +213,7 @@ def item_E(x_train, y_train, x_test, y_test, plot=False):
         plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(SAVE_PATH, "E_Train.pdf"), format="pdf", bbox_inches="tight"
+            os.path.join(SAVE_PATH, "E_Test.pdf"), format="pdf", bbox_inches="tight"
         )
         plt.show()
 
@@ -225,11 +227,11 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
 
     parameters = {
         "n_estimators": np.arange(30, 80, 10),
-        "max_samples": np.random.uniform(0.2, 1, 50),
+        "max_samples": np.random.uniform(0.2, 0.99, 50),
         "bootstrap": ["True"],
     }
 
-    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=0, return_train_score=True)
+    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem F")
@@ -270,7 +272,7 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
         plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(SAVE_PATH, "F_Train.pdf"), format="pdf", bbox_inches="tight"
+            os.path.join(SAVE_PATH, "F_Test.pdf"), format="pdf", bbox_inches="tight"
         )
         plt.show()
 
@@ -292,10 +294,10 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
         "max_depth": np.arange(5, 15, 1),
         "ccp_alpha": np.linspace(0, 0.5, 21),
         "n_estimators": [50],
-        "max_samples": np.linspace(0.5,1,6),
+        "max_samples": np.random.uniform(0.5, 0.99, 10),
     }
 
-    gsCV = GridSearchCV(randomForest, parameters, verbose=2, return_train_score=True)
+    gsCV = GridSearchCV(randomForest, parameters, verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem G")
@@ -336,7 +338,7 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
         plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(SAVE_PATH, "G_Train.pdf"), format="pdf", bbox_inches="tight"
+            os.path.join(SAVE_PATH, "G_Test.pdf"), format="pdf", bbox_inches="tight"
         )
         plt.show()
 
@@ -378,8 +380,6 @@ def item_G_Barrido(x_train, y_train, x_test, y_test, plot=False):
             bbox_inches="tight",
         )
         plt.show()
-
-    print("Ahora variando el max deep")
 
     mse_train = np.array([])
     mse_test = np.array([])
@@ -423,7 +423,7 @@ def item_H(x_train, y_train, x_test, y_test, final_model, plot=True):
         "learning_rate": np.linspace(1e-5, 5, 21),
     }
 
-    gsCV = GridSearchCV(randomForest, parameters, verbose=2, return_train_score=True)
+    gsCV = GridSearchCV(adaBoost, parameters, verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem H")
@@ -464,7 +464,7 @@ def item_H(x_train, y_train, x_test, y_test, final_model, plot=True):
         plt.legend(loc="best", fontsize=FONTSIZE - 2)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(SAVE_PATH, "H_Train.pdf"), format="pdf", bbox_inches="tight"
+            os.path.join(SAVE_PATH, "H_Test.pdf"), format="pdf", bbox_inches="tight"
         )
         plt.show()
 
@@ -496,7 +496,7 @@ if __name__ == "__main__":
     x_train, y_train = train.drop(["High", "Sales"], axis=1), train["Sales"]
     x_test, y_test = test.drop(["High", "Sales"], axis=1), test["Sales"]
 
-    # item_E(x_train, y_train, x_test, y_test, plot=True)
+    item_E(x_train, y_train, x_test, y_test, plot=True)
 
     item_F(x_train, y_train, x_test, y_test, plot=True)
 
