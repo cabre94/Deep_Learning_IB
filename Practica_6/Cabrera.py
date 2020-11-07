@@ -181,8 +181,8 @@ def item_D(train, test, tClasifier, tRegressor):
     print("MSE de test: {:.2f}".format(mse_test))
 
 
-def printFeatureImportances(x_train, final_model):
-    zipped = zip(final_model.feature_importances_, x_train.keys())
+def printFeatureImportances(x_train, feature_importances):
+    zipped = zip(feature_importances, x_train.keys())
     sort = sorted(zipped, reverse=True)
     tuples = zip(*sort)
 
@@ -253,12 +253,12 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
     ensembleBagging = ensemble.BaggingRegressor(treeRegressor)
 
     parameters = {
-        "n_estimators": np.arange(10, 100, 10),
+        "n_estimators": np.arange(30, 80, 10),
         "max_samples": np.random.uniform(0.2, 1, 50),
         "bootstrap": ["True"],
     }
 
-    gsCV = GridSearchCV(ensembleBagging, parameters,verbose=1, return_train_score=True)
+    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem F")
@@ -303,7 +303,12 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
         )
         plt.show()
 
-    printFeatureImportances(x_train, final_model)
+    feature_importance = np.zeros(10)
+
+    for estimator in final_model.estimators_:
+        feature_importance += estimator.feature_importances_
+
+    printFeatureImportances(x_train, feature_importance)
 
     return final_model
 
@@ -314,12 +319,12 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
 
     parameters = {
         "max_depth": np.arange(1, 20, 1),
-        "ccp_alpha": np.linspace(0, 1, 201),
-        "n_estimators": np.arange(10, 100, 10),
-        "max_samples": np.random.uniform(0, 1, 50),
+        "ccp_alpha": np.linspace(0, 0.5, 21),
+        "n_estimators": [50],
+        "max_samples": np.random.uniform(0.2, 1, 20),
     }
 
-    gsCV = GridSearchCV(randomForest, parameters, return_train_score=True)
+    gsCV = GridSearchCV(randomForest, parameters, verbose=1, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem G")
@@ -364,69 +369,79 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
         )
         plt.show()
 
-    printFeatureImportances(x_train, final_model)
+    printFeatureImportances(x_train, final_model.feature_importances_)
 
     return final_model
 
 
-
-
 def item_G_Barrido(x_train, y_train, x_test, y_test, plot=False):
-    scores_train = np.array([])
-    scores_test = np.array([])
-
-    pesos = np.zeros(10)
+    mse_train = np.array([])
+    mse_test = np.array([])
 
     for i in range(x_train.shape[1]):
 
         randomForest = ensemble.RandomForestRegressor(max_features=i + 1)
-
         randomForest = randomForest.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+        predict_train = randomForest.predict(x_train)
+        predict_test = randomForest.predict(x_test)
 
-        pesos += randomForest.feature_importances_
+        mse_train_i = metrics.mean_squared_error(y_train, predict_train)
+        mse_test_i = metrics.mean_squared_error(y_test, predict_test)
 
-    plt.figure()
-    plt.plot(
-        np.arange(1, 11, 1), scores_train, drawstyle="steps-post", label="Training"
-    )
-    plt.plot(np.arange(1, 11, 1), scores_test, drawstyle="steps-post", label="Test")
-    plt.show()
+        mse_train = np.append(mse_train, mse_train_i)
+        mse_test = np.append(mse_test, mse_test_i)
 
-    pesos /= x_train.shape[1]
-    print("Los pesos son")
-    print(pesos)
+    if plot:
+        plt.plot(
+            np.arange(1, 11, 1), mse_train, drawstyle="steps-post", label="Training"
+        )
+        plt.plot(np.arange(1, 11, 1), mse_test, drawstyle="steps-post", label="Test")
+        plt.xlabel("Max features", fontsize=FONTSIZE)
+        plt.ylabel("MSE", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "G_Barrido_MaxFeatures.pdf"),
+            format="pdf",
+            bbox_inches="tight",
+        )
+        plt.show()
 
     print("Ahora variando el max deep")
 
-    scores_train = np.array([])
-    scores_test = np.array([])
-
-    pesos = np.zeros(10)
+    mse_train = np.array([])
+    mse_test = np.array([])
 
     for i in range(30):
 
         randomForest = ensemble.RandomForestRegressor(max_depth=i + 1)
-
         randomForest = randomForest.fit(x_train, y_train)
 
-        scores_train = np.append(scores_train, randomForest.score(x_train, y_train))
-        scores_test = np.append(scores_test, randomForest.score(x_test, y_test))
+        predict_train = randomForest.predict(x_train)
+        predict_test = randomForest.predict(x_test)
 
-        pesos += randomForest.feature_importances_
+        mse_train_i = metrics.mean_squared_error(y_train, predict_train)
+        mse_test_i = metrics.mean_squared_error(y_test, predict_test)
 
-    pesos /= 30
-    print("Los pesos son")
-    print(pesos)
+        mse_train = np.append(mse_train, mse_train_i)
+        mse_test = np.append(mse_test, mse_test_i)
 
-    plt.figure()
-    plt.plot(
-        np.arange(1, 31, 1), scores_train, drawstyle="steps-post", label="Training"
-    )
-    plt.plot(np.arange(1, 31, 1), scores_test, drawstyle="steps-post", label="Test")
-    plt.show()
+    if plot:
+        plt.plot(
+            np.arange(1, 31, 1), mse_train, drawstyle="steps-post", label="Training"
+        )
+        plt.plot(np.arange(1, 31, 1), mse_test, drawstyle="steps-post", label="Test")
+        plt.xlabel("Max Depth", fontsize=FONTSIZE)
+        plt.ylabel("MSE", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "G_Barrido_MaxDepth.pdf"),
+            format="pdf",
+            bbox_inches="tight",
+        )
+        plt.show()
 
 
 def item_H(x_train, y_train, x_test, y_test):
@@ -519,4 +534,6 @@ if __name__ == "__main__":
     item_F(x_train, y_train, x_test, y_test, plot=True)
 
     randomForest = item_G_Mejora(x_train, y_train, x_test, y_test, plot=True)
+
+    item_G_Barrido(x_train, y_train, x_test, y_test, plot=True)
 
