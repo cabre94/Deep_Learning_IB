@@ -59,7 +59,7 @@ def item_B(train, test, plot=False):
     dot_data = tree.export_graphviz(
         treeClassifier,
         out_file=None,
-        max_depth=4,
+        max_depth=3,
         filled=True,
         rounded=True,
         label="root",
@@ -69,35 +69,6 @@ def item_B(train, test, plot=False):
     )
     graph = graphviz.Source(dot_data)
     graph.render(os.path.join(SAVE_PATH, "B_Arbol_croped"))
-
-    # print('Resultados sobre los datos de training:')
-    # y_true, y_pred = y_train, treeClassifier.predict(x_train)
-    # print(metrics.classification_report(y_true, y_pred))
-
-    # print('Resultados sobre los datos de test:')
-    # y_true, y_pred = y_test, treeClassifier.predict(x_test)
-    # print(metrics.classification_report(y_true, y_pred))
-
-    # y_scores = treeClassifier.predict_proba(x_train)
-    # fpr, tpr, thresholds = metrics.roc_curve(y_train, y_scores[:, 1])
-    # print('AUC training ', metrics.roc_auc_score(y_train, y_scores[:, 1]))
-    # y_scores_test = treeClassifier.predict_proba(x_test)
-    # fpr_test, tpr_test, thresholds = metrics.roc_curve(y_test, y_scores_test[:, 1])
-    # print('AUC test', metrics.roc_auc_score(y_test, y_scores_test[:, 1]))
-
-    # fig = plt.figure(figsize=(8,6))
-    # plt.plot(fpr, tpr,lw=2, label='Training')
-    # plt.plot(fpr_test, tpr_test, label='Test')
-    # plt.title('ROC curve', fontsize=16)
-    # plt.xlabel('False positive ratio', fontsize=14)
-    # plt.ylabel('True positive ratio')
-    # plt.legend(fontsize=14)
-    # #plt.savefig('ROC_b_1.pdf', format='pdf')
-    # plt.show()
-
-    # fig = metrics.plot_roc_curve(treeClassifier, x_train, y_train, label='Training')
-    # metrics.plot_roc_curve(treeClassifier, x_test, y_test, ax=fig.ax_, label='Test')
-    # plt.show()
 
     return treeClassifier
 
@@ -116,7 +87,7 @@ def item_C(train, test, plot=False):
 
     dot_data = tree.export_graphviz(
         treeRegressor,
-        max_depth=4,
+        max_depth=3,
         out_file=None,
         filled=True,
         rounded=True,
@@ -258,7 +229,7 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
         "bootstrap": ["True"],
     }
 
-    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=1, return_train_score=True)
+    gsCV = GridSearchCV(ensembleBagging, parameters, verbose=0, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem F")
@@ -318,13 +289,13 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
     randomForest = ensemble.RandomForestRegressor()
 
     parameters = {
-        "max_depth": np.arange(1, 20, 1),
+        "max_depth": np.arange(5, 15, 1),
         "ccp_alpha": np.linspace(0, 0.5, 21),
         "n_estimators": [50],
-        "max_samples": np.random.uniform(0.2, 1, 20),
+        "max_samples": np.linspace(0.5,1,6),
     }
 
-    gsCV = GridSearchCV(randomForest, parameters, verbose=1, return_train_score=True)
+    gsCV = GridSearchCV(randomForest, parameters, verbose=2, return_train_score=True)
     gsCV.fit(x_train, y_train)
 
     print("\nItem G")
@@ -444,64 +415,60 @@ def item_G_Barrido(x_train, y_train, x_test, y_test, plot=False):
         plt.show()
 
 
-def item_H(x_train, y_train, x_test, y_test):
-    scores_train = np.array([])
-    scores_test = np.array([])
+def item_H(x_train, y_train, x_test, y_test, final_model, plot=True):
 
-    pesos = np.zeros(10)
+    adaBoost = ensemble.AdaBoostRegressor(final_model)
 
-    for i in range(x_train.shape[1]):
+    parameters = {
+        "learning_rate": np.linspace(1e-5, 5, 21),
+    }
 
-        treeRegressor = tree.DecisionTreeRegressor(max_features=i + 1)
-        adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
+    gsCV = GridSearchCV(randomForest, parameters, verbose=2, return_train_score=True)
+    gsCV.fit(x_train, y_train)
 
-        adaBoost = adaBoost.fit(x_train, y_train)
+    print("\nItem H")
+    print("Mejores parámetros obtenidos del AdaBoost:")
+    print(gsCV.best_params_)
+    final_model = gsCV.best_estimator_
 
-        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
-        scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
+    print("Resultados con modelo optimizado con AdaBoost")
+    print("Score Train: {:.2f}".format(final_model.score(x_train, y_train)))
+    print("Score Test: {:.2f}".format(final_model.score(x_test, y_test)))
 
-        pesos += adaBoost.feature_importances_
+    predict_train = final_model.predict(x_train)
+    predict_test = final_model.predict(x_test)
 
-    plt.figure()
-    plt.plot(
-        np.arange(1, 11, 1), scores_train, drawstyle="steps-post", label="Training"
-    )
-    plt.plot(np.arange(1, 11, 1), scores_test, drawstyle="steps-post", label="Test")
-    plt.show()
+    mse_train = metrics.mean_squared_error(y_train, predict_train)
+    mse_test = metrics.mean_squared_error(y_test, predict_test)
 
-    pesos /= x_train.shape[1]
-    print("Los pesos son")
-    print(pesos)
+    print("\nItem H - Error con modelo optimizado con AdaBoost")
+    print("MSE de training: {:.2f}".format(mse_train))
+    print("MSE de test: {:.2f}".format(mse_test))
 
-    print("Ahora variando el max deep")
+    if plot:
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_train, predict_train, "or", label="Predic Train", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "H_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
 
-    scores_train = np.array([])
-    scores_test = np.array([])
+        plt.plot([0, max(y_test)], [0, max(y_test)], "--k", label="Target")
+        plt.plot(y_test, predict_test, "ob", label="Predic Test", alpha=0.6)
+        plt.xlabel("Sales reales", fontsize=FONTSIZE)
+        plt.ylabel("Sales predichos", fontsize=FONTSIZE)
+        plt.legend(loc="best", fontsize=FONTSIZE - 2)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(SAVE_PATH, "H_Train.pdf"), format="pdf", bbox_inches="tight"
+        )
+        plt.show()
 
-    pesos = np.zeros(10)
-
-    for i in range(30):
-
-        treeRegressor = tree.DecisionTreeRegressor(max_depth=i + 1)
-        adaBoost = ensemble.AdaBoostRegressor(treeRegressor)
-
-        adaBoost = adaBoost.fit(x_train, y_train)
-
-        scores_train = np.append(scores_train, adaBoost.score(x_train, y_train))
-        scores_test = np.append(scores_test, adaBoost.score(x_test, y_test))
-
-        pesos += adaBoost.feature_importances_
-
-    pesos /= 30
-    print("Los pesos son")
-    print(pesos)
-
-    plt.figure()
-    plt.plot(
-        np.arange(1, 31, 1), scores_train, drawstyle="steps-post", label="Training"
-    )
-    plt.plot(np.arange(1, 31, 1), scores_test, drawstyle="steps-post", label="Test")
-    plt.show()
+    printFeatureImportances(x_train, final_model.feature_importances_)
 
 
 if __name__ == "__main__":
@@ -518,11 +485,11 @@ if __name__ == "__main__":
     # item a: Spliteo los datos
     train, test = train_test_split(data, test_size=0.3, stratify=data["High"])
 
-    # tClasifier = item_B(train, test, plot=True)
+    tClasifier = item_B(train, test, plot=True)
 
-    # tRegressor = item_C(train, test, plot=True)
+    tRegressor = item_C(train, test, plot=True)
 
-    # item_D(train, test, tClasifier, tRegressor)
+    item_D(train, test, tClasifier, tRegressor)
 
     # De ahora en mas solo hacemos regresiones, asi que ya saco la variable
     # 'High' para siempre
@@ -537,3 +504,4 @@ if __name__ == "__main__":
 
     item_G_Barrido(x_train, y_train, x_test, y_test, plot=True)
 
+    item_H(x_train, y_train, x_test, y_test, randomForest, plot=True)
