@@ -27,7 +27,8 @@ import seaborn as snn
 snn.set(font_scale=1)
 snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 
-seed = np.random.randint(1e3, size=1)[0]
+# seed = np.random.randint(1e3, size=1)[0]
+seed = 972
 np.random.seed(seed)
 
 print("Semilla: {}\n".format(seed))
@@ -280,6 +281,8 @@ def item_F(x_train, y_train, x_test, y_test, plot=True):
 
     for estimator in final_model.estimators_:
         feature_importance += estimator.feature_importances_
+    
+    feature_importance /= len(final_model.estimators_)
 
     printFeatureImportances(x_train, feature_importance)
 
@@ -293,7 +296,7 @@ def item_G_Mejora(x_train, y_train, x_test, y_test, plot=False):
     parameters = {
         "max_depth": np.arange(5, 15, 1),
         "ccp_alpha": np.linspace(0, 0.5, 21),
-        "n_estimators": [50],
+        "n_estimators": [70],
         "max_samples": np.random.uniform(0.5, 0.99, 10),
     }
 
