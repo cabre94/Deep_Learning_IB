@@ -263,6 +263,10 @@ for l in range(1, 37):
     mse_test.append(test_mse)
     mse_train.append(train_mse)
 
+l_log = np.array(l_log)
+mse_test = np.array(mse_test)
+mse_train = np.array(mse_train)
+
 
 # Grafico
 plt.figure()
