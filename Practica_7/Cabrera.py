@@ -400,8 +400,8 @@ for l in range(1, 37):
         X, Y, shuffle=False, test_size=0.3
     )
 
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
-    X_test = X_test.reshape(X_test.shape[0], X_train.shape[1], 1)
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1])
+    X_test = X_test.reshape(X_test.shape[0], X_train.shape[1])
 
     model = Dense_model()
 
