@@ -28,21 +28,32 @@ import seaborn as snn
 snn.set(font_scale=1)
 snn.set_style("darkgrid", {"axes.facecolor": ".9"})
 
-# Abro el csv
+# -------------------------------------
+# 1 - Arbo los datos
+# -------------------------------------
 data = pd.read_csv("airline-passengers.csv", header=0)
 
 data = data["Passengers"].values
 data = data.reshape((data.shape[0], 1))
 
-# Normalizacion
+# -------------------------------------
+# 2 - Normalizacion
+# -------------------------------------
 normalization = MinMaxScaler(feature_range=(0, 1))
 data_normalized = normalization.fit_transform(data)
+
+# -------------------------------------
+# 3 - Ruido Gaussiano
+# -------------------------------------
 
 # Voy a agregarle el ruido antes de formateear los datos, porque para mi tiene mas
 # sentido que un valor x[i] tenga el mismo ruido en cualquier set
 noise = np.random.normal(loc=0, scale=0.02, size=data_normalized.shape)
 data_noise = data_normalized + noise
 
+# -------------------------------------
+# 2 - Formateo de los datos
+# -------------------------------------
 # Funcion para formatear los datos segun el enunciado
 def formatData(dataset, l=1):
     X, Y = [], []
@@ -53,27 +64,25 @@ def formatData(dataset, l=1):
     return np.array(X), np.array(Y)
 
 
-l = 36
+l = 1
 X, Y = formatData(data_noise, l)
 
-# Spliteo los datos
-# train_size = int(len(X) * 0.7)
-
-# X_train, X_test = X[:train_size, :], X[train_size:, :]
-# Y_train, Y_test = Y[:train_size, :], Y[train_size:, :]
+# -------------------------------------
+# 4 - Spliteo de los datos
+# -------------------------------------
 
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, shuffle=False, test_size=0.3)
 
-
 # -------------------------------------
-# 5
+# 5 - Reshape de los datos para LSTM
 # -------------------------------------
 
 X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
 X_test = X_test.reshape(X_test.shape[0], X_train.shape[1], 1)
 
-# X_train = X_train.reshape(X_train.shape[0],1, X_train.shape[1])
-# X_test = X_test.reshape(X_test.shape[0],1, X_test.shape[1])
+# -------------------------------------
+# 6 - Modelo con LSTM
+# -------------------------------------
 
 
 def LSTM_model():
@@ -91,11 +100,15 @@ model.compile(
     optimizer=optimizers.Adam(learning_rate=1e-3), loss=losses.MeanSquaredError(),
 )
 
+# -------------------------------------
+# 7 - Entrenamiento de la red
+# -------------------------------------
+
 hist = model.fit(
     X_train,
     Y_train,
     validation_data=(X_test, Y_test),
-    epochs=50,
+    epochs=100,
     batch_size=1,
     verbose=2,
 )
@@ -103,7 +116,6 @@ hist = model.fit(
 # Calculo la loss y Accuracy para los datos de test
 test_loss = model.evaluate(X_test, Y_test)
 hist.history["test_loss"] = test_loss
-# hist.history['test_acc'] = test_acc
 
 # Guardo las imagenes
 img_folder = "Figuras"
@@ -120,38 +132,151 @@ plt.ylabel("Loss", fontsize=15)
 plt.legend(loc="best")
 plt.tight_layout()
 plt.savefig(os.path.join(img_folder, "Loss.pdf"), format="pdf", bbox_inches="tight")
+plt.close()
 
+# -------------------------------------
+# 8 - Calculamos las predicciones
+# -------------------------------------
 
 train_predict = model.predict(X_train)
 test_predict = model.predict(X_test)
 
+# Invertimos la normalizacion
 train_predict = normalization.inverse_transform(train_predict)
 test_predict = normalization.inverse_transform(test_predict)
 Y_train = normalization.inverse_transform(Y_train)
 Y_test = normalization.inverse_transform(Y_test)
 
-
+# Calculo el error cuadratico medio
 train_mse = mean_squared_error(Y_train, train_predict)
 test_mse = mean_squared_error(Y_test, test_predict)
-
 print("MSE final de train: {:.2f}".format(train_mse))
 print("MSE final de test:  {:.2f}".format(test_mse))
 
-
+# Ploteo los resultados
 month = np.arange(len(data))
 
 plt.figure()
-# plt.plot(normalization.inverse_transform(passengers), label='Datos')
-plt.plot(data, label='Datos+Ruidos')
+plt.plot(normalization.inverse_transform(data_noise), label="Datos+Ruido")
+plt.plot(np.arange(len(train_predict)) + l, train_predict, label="Training")
+plt.plot(
+    np.arange(len(test_predict)) + len(train_predict) + l, test_predict, label="Test"
+)
+plt.xlabel("Meses", fontsize=15)
+plt.ylabel("N° de pasajeros", fontsize=15)
+plt.legend(loc="best")
+plt.tight_layout()
+plt.savefig(os.path.join(img_folder, "Predict.pdf"), format="pdf", bbox_inches="tight")
+plt.close()
 
-# plt.plot(month[l:len(train_predict)+l], train_predict)
-plt.plot(np.arange(len(train_predict)) +l, train_predict, label='Training')
+# -------------------------------------
+# 9 - Analizamos el efecto de l
+# -------------------------------------
 
-plt.plot(np.arange(len(test_predict))+len(train_predict)+l, test_predict, label='Test')
-# plt.plot(month[-len(test_predict)-l:-l], test_predict, label='1')
-# plt.plot(len(train_predict)+np.arange(0,len(test_predict)), test_predict, label='2')
+l_log = []
+mse_test = []
+mse_train = []
+
+for l in range(1, 37):
+
+    X, Y = formatData(data_noise, l)
+
+    X_train, X_test, Y_train, Y_test = train_test_split(
+        X, Y, shuffle=False, test_size=0.3
+    )
+
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+    X_test = X_test.reshape(X_test.shape[0], X_train.shape[1], 1)
+
+    model = LSTM_model()
+
+    model.compile(
+        optimizer=optimizers.Adam(learning_rate=1e-3), loss=losses.MeanSquaredError(),
+    )
+
+    hist = model.fit(
+        X_train,
+        Y_train,
+        validation_data=(X_test, Y_test),
+        epochs=100,
+        batch_size=1,
+        verbose=2,
+    )
+
+    # Grafico
+    plt.figure()
+    plt.plot(hist.history["loss"], label="Loss Training")
+    plt.plot(hist.history["val_loss"], label="Loss Test")
+    # plt.title("Loss Test: {:.3f}".format(test_loss))
+    plt.xlabel("Epocas", fontsize=15)
+    plt.ylabel("Loss", fontsize=15)
+    plt.legend(loc="best")
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(img_folder, "Loss_l={}.pdf".format(l)),
+        format="pdf",
+        bbox_inches="tight",
+    )
+    plt.close()
+
+    train_predict = model.predict(X_train)
+    test_predict = model.predict(X_test)
+
+    # Invertimos la normalizacion
+    train_predict = normalization.inverse_transform(train_predict)
+    test_predict = normalization.inverse_transform(test_predict)
+    Y_train = normalization.inverse_transform(Y_train)
+    Y_test = normalization.inverse_transform(Y_test)
+
+    # Calculo el error cuadratico medio
+    train_mse = mean_squared_error(Y_train, train_predict)
+    test_mse = mean_squared_error(Y_test, test_predict)
+    print("l={} MSE train: {:.2f}".format(l, train_mse))
+    print("l={} MSE test:  {:.2f}".format(l, test_mse))
+
+    # Ploteo los resultados
+    month = np.arange(len(data_noise))
+
+    plt.figure()
+    plt.plot(normalization.inverse_transform(data_noise), label="Datos+Ruido")
+    plt.plot(np.arange(len(train_predict)) + l, train_predict, label="Training")
+    plt.plot(
+        np.arange(len(test_predict)) + len(train_predict) + l,
+        test_predict,
+        label="Test",
+    )
+    plt.xlabel("Meses", fontsize=15)
+    plt.ylabel("N° de pasajeros", fontsize=15)
+    plt.legend(loc="best")
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(img_folder, "Predict_l={}.pdf".format(l)),
+        format="pdf",
+        bbox_inches="tight",
+    )
+    plt.close()
+
+    l_log.append(l)
+    mse_test.append(test_mse)
+    mse_train.append(train_mse)
 
 
-plt.grid(True)
-plt.legend(loc='best')
-plt.show()
+# Grafico
+plt.figure()
+plt.plot(l_log, mse_train, label="Training")
+plt.xlabel("l", fontsize=15)
+plt.ylabel("MSE", fontsize=15)
+plt.legend(loc="best")
+plt.tight_layout()
+plt.savefig(os.path.join(img_folder, "MSE_LSTM_Train.pdf"), format="pdf", bbox_inches="tight")
+plt.close()
+
+plt.figure()
+plt.plot(l_log, mse_test, label="Test")
+plt.xlabel("l", fontsize=15)
+plt.ylabel("MSE", fontsize=15)
+plt.legend(loc="best")
+plt.tight_layout()
+plt.savefig(os.path.join(img_folder, "MSE_LSTM_Test.pdf"), format="pdf", bbox_inches="tight")
+plt.close()
+
