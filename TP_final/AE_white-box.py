@@ -39,19 +39,24 @@ from tensorflow.keras.applications import inception_v3
 # model = inception_resnet_v2.InceptionResNetV2()
 model = inception_v3.InceptionV3()
 
-# imagen = image.load_img("Cerveza.jpg")
 imagen = image.load_img("Cerveza.jpg", target_size=(299,299))
-# imagen_3 = image.load_img("Cerveza.jpg", target_size=(1024,1024))
 
 arr_img = image.img_to_array(imagen)   # imagen como array
 
 
-arr_img = np.expand_dims(arr_img, axis=0)
+# arr_img = np.expand_dims(arr_img, axis=0)
+arr_img = arr_img[None,...]
 
 # Preprocesamos la imagen
 arr_img = inception_v3.preprocess_input(arr_img)
 
-tensor_img = tf.convert_to_tensor(arr_img, dtype=tf.float64)
+tensor_img = tf.convert_to_tensor(arr_img, dtype=tf.float32)
+
+def invert_preProcess(x):
+    x += 1.0
+    x *= 127.5
+    return tf.cast(x, tf.uint8)
+
 
 
 
@@ -67,7 +72,7 @@ inception_v3.decode_predictions(y)
 Input = model.layers[0].input
 Output = model.layers[-1].output
 
-target = 7  # Creo que es una referencia a un limon en V3
+target = 7  # Creo que es una referencia a un cock en V3
 
 # De la salida, nos interesa la componente correspondiente a nuestra imagen
 # loss = Output[0, target]
@@ -77,7 +82,7 @@ target_output = Output[:, target]   #XXX chequear si cambia en algo esto
 # Creamos el gradiente pero no entre el error y los parametros, si no sobre la variable de entrada
 # gradient = K.gradients(loss, Input)[0]
 
-kk = tf.image.convert_image_dtype(arr_img, dtype=tf.float64)
+kk = tf.image.convert_image_dtype(arr_img, dtype=tf.float32)
 
 # with tf.GradientTape() as tape:
 #     tape.watch(Input)
