@@ -8,40 +8,6 @@ Email: cabre94@hotmail.com facundo.cabrera@ib.edu.ar
 GitHub: https://github.com/cabre94
 GitLab: https://gitlab.com/cabre94
 Description:
-
-# Aca hay citados algunos papers
-https://jvmohr.github.io/post/adversarial-machine-learning/
-
-# Esto es una libreria para hacer ataques??
-https://foolbox.readthedocs.io/en/latest/modules/attacks.html#foolbox.attacks.L2AdditiveGaussianNoiseAttack
-
-https://www.kaggle.com/josephvm/generating-adversarial-examples-with-foolbox
-
-
-# Aca hay ejemplos de como defenderse de adversarials examples
-https://medium.com/analytics-vidhya/implementing-adversarial-attacks-and-defenses-in-keras-tensorflow-2-0-cab6120c5715
-
-Este esta en chino
-https://www.kaggle.com/kenichinakatani/create-adversarial-examples
-
-https://foolbox.readthedocs.io/en/latest/modules/models.html#foolbox.models.TensorFlowModel
-
-Aca estan los distintos preprocesados de las redes
-https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py#L21
-y aca un ejemplo de una persona que hizo la inversion
-https://stackoverflow.com/questions/55987302/reversing-the-image-preprocessing-of-vgg-in-keras-to-return-original-image
-
-
-
-# Adversarial examples con audio
-https://nicholas.carlini.com/code/audio_adversarial_examples
-
-
-
------------------------------------
-Ataque adversario con tensorflow
-https://www.tensorflow.org/tutorials/generative/adversarial_fgsm
-https://www.tensorflow.org/tutorials/generative/deepdream
 """
 
 import os
@@ -100,6 +66,7 @@ def get_imagenet_label(img):
     predict = model.predict(img)
     return inception_v3.decode_predictions(predict, top=1)[0][0]
 
+
 # Abrimos la imagen
 imagen = image.load_img("Perro.jpg", target_size=(299, 299))
 # La preprocesamos
@@ -114,7 +81,7 @@ _, clase, prob = get_imagenet_label(imagen)
 plt.title("{} : {:.2f}%".format(clase, prob * 100))
 plt.axis("off")
 plt.tight_layout()
-plt.savefig(os.path.join(SAVE_FOLDER, "Golden_retriver.pdf"), format="pdf", fontsize=20)
+plt.savefig(os.path.join(SAVE_FOLDER, "Golden_retriver.jpg"), format="jpg", fontsize=22)
 plt.show()
 
 # Funcion que nos devuelve la funcion de costo CCE que vamos a buscar maximizar
@@ -159,7 +126,7 @@ plt.figure(figsize=(5, 5))
 plt.imshow(invert_preProcess(perturbations)[0])  # To change [-1, 1] to [0,1]
 plt.axis("off")
 plt.tight_layout()
-plt.savefig(os.path.join(FGSM_FOLDER, "Perturbacion.pdf"), format="pdf")
+plt.savefig(os.path.join(FGSM_FOLDER, "Perturbacion.jpg"), format="jpg")
 plt.show()
 
 # Funcion para graficar las imagenes perturbadas, con su nueva prediccion y probabilidad
@@ -173,12 +140,12 @@ def display_images(img, epsilon):
         "$\epsilon$={} \n {}: {:.2f}% de Probabilidad".format(
             epsilon, clase, probabilidad * 100
         ),
-        fontsize=20,
+        fontsize=22,
     )
     plt.axis("off")
     plt.tight_layout()
     plt.savefig(
-        os.path.join(FGSM_FOLDER, "epsilon={}.pdf".format(epsilon)), format="pdf"
+        os.path.join(FGSM_FOLDER, "epsilon={}.jpg".format(epsilon)), format="jpg"
     )
     plt.show()
 
@@ -192,3 +159,28 @@ for i, eps in enumerate(epsilons):
     adv_x = tf.clip_by_value(adv_x, -1, 1)
     # Graficamos
     display_images(adv_x, epsilons[i])
+
+# Veamos que pasa si usamos estas imagenes modificadas en otras redes
+# a ver si tambien logramos engañarlas
+adver = imagen + 0.1 * perturbations
+adver = tf.clip_by_value(adver, -1, 1)
+
+# InceptionResnetV2
+model2 = inception_resnet_v2.InceptionResNetV2()
+y = model2.predict(adver)
+inception_resnet_v2.decode_predictions(y)
+
+# VGG19
+model = vgg19.VGG19()
+y = model.predict(
+    tf.image.resize(vgg19.preprocess_input(invert_preProcess(adver)), [224, 224])
+)
+vgg19.decode_predictions(y)  # 'vizsla', 0.1885828
+
+# VGG16
+model = vgg16.VGG16()
+y = model.predict(
+    tf.image.resize(vgg16.preprocess_input(invert_preProcess(adver)), [224, 224])
+)
+vgg16.decode_predictions(y)  # Chesapeake_Bay_retriever', 0.14962395
+
